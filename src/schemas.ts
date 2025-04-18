@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from 'zod'
 
 /**
  * Zod schema to parse strings that are booleans.
@@ -11,7 +11,7 @@ import { z } from 'zod';
 export const BoolAsString = z
   .string()
   .regex(/^(true|false)$/, 'Must be a boolean string ("true" or "false")')
-  .transform((value) => value === 'true');
+  .transform((value) => value === 'true')
 
 /**
  * Zod schema to parse checkbox formdata.
@@ -25,7 +25,7 @@ export const BoolAsString = z
 export const CheckboxAsString = z
   .literal('on')
   .optional()
-  .transform((value) => value === 'on');
+  .transform((value) => value === 'on')
 
 /**
  * Zod schema to parse strings that are integers.
@@ -38,7 +38,7 @@ export const CheckboxAsString = z
 export const IntAsString = z
   .string()
   .regex(/^-?\d+$/, 'Must be an integer string')
-  .transform((val) => parseInt(val, 10));
+  .transform((val) => Number.parseInt(val, 10))
 
 /**
  * Zod schema to parse strings that are numbers.
@@ -51,4 +51,4 @@ export const IntAsString = z
 export const NumAsString = z
   .string()
   .regex(/^-?\d*\.?\d+$/, 'Must be a number string')
-  .transform(Number);
+  .transform(Number)

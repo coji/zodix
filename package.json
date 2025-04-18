@@ -2,6 +2,7 @@
   "name": "zodix",
   "version": "0.4.4",
   "description": "Parse Remix loaders and actions with Zod",
+  "type": "module",
   "main": "dist/index.js",
   "files": [
     "dist"
@@ -16,39 +17,34 @@
   "private": false,
   "scripts": {
     "build": "node build.js && tsc -b",
-    "lint": "eslint src",
-    "prepare": "yarn build",
-    "prepublishOnly": "yarn lint && yarn typecheck",
+    "lint": "biome lint src",
+    "prepare": "pnpm build",
+    "prepublishOnly": "pnpm lint && pnpm typecheck",
     "test": "vitest",
     "release": "np",
     "typecheck": "tsc"
   },
   "devDependencies": {
-    "@remix-run/eslint-config": "^1.7.2",
-    "@remix-run/node": "^1.7.2",
-    "@remix-run/server-runtime": "^1.7.2",
-    "esbuild": "^0.15.10",
-    "eslint": "^8.25.0",
-    "eslint-config-prettier": "^8.5.0",
-    "np": "7.6.3",
-    "prettier": "^2.7.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^4.8.4",
-    "vite": "^3.1.7",
-    "vitest": "^0.24.1",
+    "@biomejs/biome": "^1.9.4",
+    "@react-router/node": "^7.5.1",
+    "esbuild": "^0.25.2",
+    "np": "10.2.0",
+    "prettier": "^3.5.3",
+    "prettier-plugin-organize-imports": "^4.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-router": "^7.5.1",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.2",
+    "vitest": "^3.1.1",
     "zod": "^3.19.1"
   },
   "peerDependencies": {
-    "@remix-run/server-runtime": "1.x || 2.x",
     "zod": "3.x"
   },
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
   },
-  "packageManager": "yarn@1.22.19",
-  "prettier": {
-    "singleQuote": true
-  }
+  "packageManager": "pnpm@10.8.1"
 }

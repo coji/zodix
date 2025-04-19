@@ -1,31 +1,29 @@
-import { z } from 'zod';
-import { createErrorResponse } from './errors';
-import type { DataFunctionArgs } from '@remix-run/server-runtime';
+import type { Params } from 'react-router'
 import type {
   output,
   SafeParseReturnType,
   ZodObject,
   ZodRawShape,
   ZodTypeAny,
-} from 'zod';
-
-type Params = DataFunctionArgs['params'];
+} from 'zod'
+import { z } from 'zod'
+import { createErrorResponse } from './errors'
 
 type Options<Parser = SearchParamsParser> = {
   /** Custom error message for when the validation fails. */
-  message?: string;
+  message?: string
   /** Status code for thrown request when validation fails. */
-  status?: number;
+  status?: number
   /** Custom URLSearchParams parsing function. */
-  parser?: Parser;
-};
+  parser?: Parser
+}
 
 /**
  * Type assertion function avoids problems with some bundlers when
  * using `instanceof` to check the type of a `schema` param.
  */
 const isZodType = (input: ZodRawShape | ZodTypeAny): input is ZodTypeAny => {
-  return typeof input.parse === 'function';
+  return typeof input.parse === 'function'
 }
 
 /**
@@ -34,8 +32,8 @@ const isZodType = (input: ZodRawShape | ZodTypeAny): input is ZodTypeAny => {
 type ParsedData<T extends ZodRawShape | ZodTypeAny> = T extends ZodTypeAny
   ? output<T>
   : T extends ZodRawShape
-  ? output<ZodObject<T>>
-  : never;
+    ? output<ZodObject<T>>
+    : never
 
 /**
  * Generic return type for parseXSafe functions.
@@ -43,8 +41,8 @@ type ParsedData<T extends ZodRawShape | ZodTypeAny> = T extends ZodTypeAny
 type SafeParsedData<T extends ZodRawShape | ZodTypeAny> = T extends ZodTypeAny
   ? SafeParseReturnType<z.infer<T>, ParsedData<T>>
   : T extends ZodRawShape
-  ? SafeParseReturnType<ZodObject<T>, ParsedData<T>>
-  : never;
+    ? SafeParseReturnType<ZodObject<T>, ParsedData<T>>
+    : never
 
 /**
  * Parse and validate Params from LoaderArgs or ActionArgs. Throws an error if validation fails.
@@ -55,13 +53,13 @@ type SafeParsedData<T extends ZodRawShape | ZodTypeAny> = T extends ZodTypeAny
 export function parseParams<T extends ZodRawShape | ZodTypeAny>(
   params: Params,
   schema: T,
-  options?: Options
+  options?: Options,
 ): ParsedData<T> {
   try {
-    const finalSchema = isZodType(schema) ? schema : z.object(schema);
-    return finalSchema.parse(params);
+    const finalSchema = isZodType(schema) ? schema : z.object(schema)
+    return finalSchema.parse(params)
   } catch (error) {
-    throw createErrorResponse(options);
+    throw createErrorResponse(options)
   }
 }
 
@@ -73,10 +71,10 @@ export function parseParams<T extends ZodRawShape | ZodTypeAny>(
  */
 export function parseParamsSafe<T extends ZodRawShape | ZodTypeAny>(
   params: Params,
-  schema: T
+  schema: T,
 ): SafeParsedData<T> {
-  const finalSchema = isZodType(schema) ? schema : z.object(schema);
-  return finalSchema.safeParse(params) as SafeParsedData<T>;
+  const finalSchema = isZodType(schema) ? schema : z.object(schema)
+  return finalSchema.safeParse(params) as SafeParsedData<T>
 }
 
 /**
@@ -88,17 +86,17 @@ export function parseParamsSafe<T extends ZodRawShape | ZodTypeAny>(
 export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
   request: Request | URLSearchParams,
   schema: T,
-  options?: Options
+  options?: Options,
 ): ParsedData<T> {
   try {
     const searchParams = isURLSearchParams(request)
       ? request
-      : getSearchParamsFromRequest(request);
-    const params = parseSearchParams(searchParams, options?.parser);
-    const finalSchema = isZodType(schema) ? schema : z.object(schema);
-    return finalSchema.parse(params);
+      : getSearchParamsFromRequest(request)
+    const params = parseSearchParams(searchParams, options?.parser)
+    const finalSchema = isZodType(schema) ? schema : z.object(schema)
+    return finalSchema.parse(params)
   } catch (error) {
-    throw createErrorResponse(options);
+    throw createErrorResponse(options)
   }
 }
 
@@ -111,14 +109,14 @@ export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
 export function parseQuerySafe<T extends ZodRawShape | ZodTypeAny>(
   request: Request | URLSearchParams,
   schema: T,
-  options?: Options
+  options?: Options,
 ): SafeParsedData<T> {
   const searchParams = isURLSearchParams(request)
     ? request
-    : getSearchParamsFromRequest(request);
-  const params = parseSearchParams(searchParams, options?.parser);
-  const finalSchema = isZodType(schema) ? schema : z.object(schema);
-  return finalSchema.safeParse(params) as SafeParsedData<T>;
+    : getSearchParamsFromRequest(request)
+  const params = parseSearchParams(searchParams, options?.parser)
+  const finalSchema = isZodType(schema) ? schema : z.object(schema)
+  return finalSchema.safeParse(params) as SafeParsedData<T>
 }
 
 /**
@@ -129,21 +127,21 @@ export function parseQuerySafe<T extends ZodRawShape | ZodTypeAny>(
  */
 export async function parseForm<
   T extends ZodRawShape | ZodTypeAny,
-  Parser extends SearchParamsParser<any>
+  Parser extends FormDataParser<any>,
 >(
   request: Request | FormData,
   schema: T,
-  options?: Options<Parser>
+  options?: Options<Parser>,
 ): Promise<ParsedData<T>> {
   try {
     const formData = isFormData(request)
       ? request
-      : await request.clone().formData();
-    const data = await parseFormData(formData, options?.parser);
-    const finalSchema = isZodType(schema) ? schema : z.object(schema);
-    return await finalSchema.parseAsync(data);
+      : await request.clone().formData()
+    const data = await parseFormData(formData, options?.parser)
+    const finalSchema = isZodType(schema) ? schema : z.object(schema)
+    return await finalSchema.parseAsync(data)
   } catch (error) {
-    throw createErrorResponse(options);
+    throw createErrorResponse(options)
   }
 }
 
@@ -155,49 +153,76 @@ export async function parseForm<
  */
 export async function parseFormSafe<
   T extends ZodRawShape | ZodTypeAny,
-  Parser extends SearchParamsParser<any>
+  Parser extends FormDataParser<any>,
 >(
   request: Request | FormData,
   schema: T,
-  options?: Options<Parser>
+  options?: Options<Parser>,
 ): Promise<SafeParsedData<T>> {
   const formData = isFormData(request)
     ? request
-    : await request.clone().formData();
-  const data = await parseFormData(formData, options?.parser);
-  const finalSchema = isZodType(schema) ? schema : z.object(schema);
-  return finalSchema.safeParseAsync(data) as Promise<SafeParsedData<T>>;
+    : await request.clone().formData()
+  const data = await parseFormData(formData, options?.parser)
+  const finalSchema = isZodType(schema) ? schema : z.object(schema)
+  return finalSchema.safeParseAsync(data) as Promise<SafeParsedData<T>>
 }
 
 /**
  * The data returned from parsing a URLSearchParams object.
  */
-type ParsedSearchParams = Record<string, string | string[]>;
+type ParsedSearchParams = Record<string, string | string[]>
 
 /**
  * Function signature to allow for custom URLSearchParams parsing.
  */
 type SearchParamsParser<T = ParsedSearchParams> = (
-  searchParams: URLSearchParams
-) => T;
+  searchParams: URLSearchParams,
+) => T
+
+/**
+ * The data returned from parsing a FormData object.
+ */
+type ParsedFormData = Record<string, string | string[] | File>
+
+/**
+ * Function signature to allow for custom FormData parsing.
+ */
+type FormDataParser<T = ParsedFormData> = (formData: FormData) => T
 
 /**
  * Check if an object entry value is an instance of Object
  */
 function isObjectEntry([, value]: [string, FormDataEntryValue]) {
-  return value instanceof Object;
+  return value instanceof Object
 }
 
 /**
  * Get the form data from a request as an object.
  */
-function parseFormData(formData: FormData, customParser?: SearchParamsParser) {
-  const objectEntries = [...formData.entries()].filter(isObjectEntry);
-  objectEntries.forEach(([key, value]) => {
-    formData.set(key, JSON.stringify(value));
-  });
-  // Context on `as any` usage: https://github.com/microsoft/TypeScript/issues/30584
-  return parseSearchParams(new URLSearchParams(formData as any), customParser);
+function parseFormData(formData: FormData, customParser?: FormDataParser) {
+  const parser = customParser || parseFormDataDefault
+  return parser(formData)
+}
+
+/**
+ * The default parser for FormData.
+ * Get the form data as an object. Create arrays for duplicate keys.
+ */
+const parseFormDataDefault: FormDataParser = (formData) => {
+  const values: ParsedFormData = {}
+  for (const [key, value] of formData.entries()) {
+    const currentVal = values[key]
+    if (currentVal && Array.isArray(currentVal)) {
+      currentVal.push(value.toString())
+    } else if (value instanceof File) {
+      values[key] = value.name
+    } else if (currentVal) {
+      values[key] = [currentVal.toString(), value]
+    } else {
+      values[key] = value
+    }
+  }
+  return values
 }
 
 /**
@@ -205,10 +230,10 @@ function parseFormData(formData: FormData, customParser?: SearchParamsParser) {
  */
 function parseSearchParams(
   searchParams: URLSearchParams,
-  customParser?: SearchParamsParser
+  customParser?: SearchParamsParser,
 ): ParsedSearchParams {
-  const parser = customParser || parseSearchParamsDefault;
-  return parser(searchParams);
+  const parser = customParser || parseSearchParamsDefault
+  return parser(searchParams)
 }
 
 /**
@@ -216,26 +241,26 @@ function parseSearchParams(
  * Get the search params as an object. Create arrays for duplicate keys.
  */
 const parseSearchParamsDefault: SearchParamsParser = (searchParams) => {
-  const values: ParsedSearchParams = {};
+  const values: ParsedSearchParams = {}
   for (const [key, value] of searchParams) {
-    const currentVal = values[key];
+    const currentVal = values[key]
     if (currentVal && Array.isArray(currentVal)) {
-      currentVal.push(value);
+      currentVal.push(value)
     } else if (currentVal) {
-      values[key] = [currentVal, value];
+      values[key] = [currentVal, value]
     } else {
-      values[key] = value;
+      values[key] = value
     }
   }
-  return values;
-};
+  return values
+}
 
 /**
  * Get the search params from a request.
  */
 function getSearchParamsFromRequest(request: Request): URLSearchParams {
-  const url = new URL(request.url);
-  return url.searchParams;
+  const url = new URL(request.url)
+  return url.searchParams
 }
 
 /**
@@ -243,17 +268,17 @@ function getSearchParamsFromRequest(request: Request): URLSearchParams {
  * This is a workaround for `instanceof` to support multiple platforms.
  */
 function isFormData(value: unknown): value is FormData {
-  return getObjectTypeName(value) === 'FormData';
+  return getObjectTypeName(value) === 'FormData'
 }
 
 /**
  * Check if value is an instance of URLSearchParams.
  * This is a workaround for `instanceof` to support multiple platforms.
  */
-function isURLSearchParams(value: unknown): value is FormData {
-  return getObjectTypeName(value) === 'URLSearchParams';
+function isURLSearchParams(value: unknown): value is URLSearchParams {
+  return getObjectTypeName(value) === 'URLSearchParams'
 }
 
 function getObjectTypeName(value: unknown): string {
-  return toString.call(value).slice(8, -1);
+  return toString.call(value).slice(8, -1)
 }

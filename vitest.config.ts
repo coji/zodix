@@ -1,6 +1,6 @@
 /// <reference types="vitest" />
 
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vite'
 
 export default defineConfig({
   test: {
@@ -10,4 +10,4 @@ export default defineConfig({
     include: ['./src/**/*.test.ts'],
     watchExclude: ['.*\\/node_modules\\/.*', '.*\\/build\\/.*'],
   },
-});
+})

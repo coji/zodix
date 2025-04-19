@@ -1,54 +1,71 @@
 {
-  "name": "zodix",
-  "version": "0.4.4",
-  "description": "Parse Remix loaders and actions with Zod",
-  "main": "dist/index.js",
+  "name": "@coji/zodix",
+  "version": "0.5.0",
+  "description": "Parse React Router loaders and actions with Zod",
+  "license": "MIT",
+  "sideEffects": false,
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "files": [
     "dist"
   ],
-  "repository": "rileytomasek/zodix",
   "author": {
-    "name": "Riley Tomasek",
-    "email": "hi@rile.yt",
-    "url": "https://rile.yt"
+    "name": "Coji MIZOGUCHI",
+    "email": "coji@techtalk.jp",
+    "url": "https://techtalk.jp"
   },
-  "license": "MIT",
-  "private": false,
   "scripts": {
-    "build": "node build.js && tsc -b",
-    "lint": "eslint src",
-    "prepare": "yarn build",
-    "prepublishOnly": "yarn lint && yarn typecheck",
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "clean": "rm -rf dist",
+    "lint": "biome lint src",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --check .",
     "test": "vitest",
-    "release": "np",
-    "typecheck": "tsc"
+    "release": "np"
   },
   "devDependencies": {
-    "@remix-run/eslint-config": "^1.7.2",
-    "@remix-run/node": "^1.7.2",
-    "@remix-run/server-runtime": "^1.7.2",
-    "esbuild": "^0.15.10",
-    "eslint": "^8.25.0",
-    "eslint-config-prettier": "^8.5.0",
-    "np": "7.6.3",
-    "prettier": "^2.7.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "typescript": "^4.8.4",
-    "vite": "^3.1.7",
-    "vitest": "^0.24.1",
+    "@biomejs/biome": "^1.9.4",
+    "prettier": "^3.5.3",
+    "prettier-plugin-organize-imports": "^4.1.0",
+    "react-router": "^7.5.1",
+    "tsup": "^8.4.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.2",
+    "vitest": "^3.1.1",
     "zod": "^3.19.1"
   },
   "peerDependencies": {
-    "@remix-run/server-runtime": "1.x || 2.x",
-    "zod": "3.x"
+    "zod": "^3"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=18"
   },
   "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
+    "access": "public"
   },
-  "packageManager": "yarn@1.22.19",
-  "prettier": {
-    "singleQuote": true
-  }
+  "homepage": "https://sdk.vercel.ai/docs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coji/zodix.git"
+  },
+  "bugs": {
+    "url": "https://github.com/coji/zodix/issues"
+  },
+  "packageManager": "pnpm@10.8.1"
 }

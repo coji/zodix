@@ -5,6 +5,7 @@
 Zodix is a collection of [Zod](https://github.com/colinhacks/zod) utilities for [Remix](https://github.com/remix-run/remix) loaders and actions. It abstracts the complexity of parsing and validating `FormData` and `URLSearchParams` so your loaders/actions stay clean and are strongly typed.
 
 Remix loaders often look like:
+
 ```ts
 export async function loader({ params, request }: LoaderArgs) {
   const { id } = params;
@@ -22,6 +23,7 @@ export async function loader({ params, request }: LoaderArgs) {
 ```
 
 Here is the same loader with Zodix:
+
 ```ts
 export async function loader({ params, request }: LoaderArgs) {
   const { id } = zx.parseParams(params, { id: z.string() });
@@ -121,7 +123,6 @@ export async function action({ request }: ActionArgs) {
 };
 ```
 
-
 ### zx.parseQuery(request: Request, schema: Schema)
 
 Parse and validate the query string (search params) of a `Request`:
@@ -196,21 +197,25 @@ Because `FormData` and `URLSearchParams` serialize all values to strings, you of
 ### Available Helpers
 
 #### zx.BoolAsString
+
 - `"true"` → `true`
 - `"false"` → `false`
 - `"notboolean"` → throws `ZodError`
 
 #### zx.CheckboxAsString
+
 - `"on"` → `true`
 - `undefined` → `false`
 - `"anythingbuton"` → throws `ZodError`
 
 #### zx.IntAsString
+
 - `"3"` → `3`
 - `"3.14"` → throws `ZodError`
 - `"notanumber"` → throws `ZodError`
 
 #### zx.NumAsString
+
 - `"3"` → `3`
 - `"3.14"` → `3.14`
 - `"notanumber"` → throws `ZodError`

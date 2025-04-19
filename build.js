@@ -1,8 +1,10 @@
-require('esbuild').buildSync({
+import esbuild from 'esbuild'
+
+esbuild.buildSync({
   bundle: true,
   entryPoints: ['src/index.ts'],
   external: ['zod', '@remix-run/server-runtime'],
   outfile: 'dist/index.js',
   platform: 'node',
-  target: ['node16'],
-});
+  target: ['node18'],
+})

@@ -1,50 +1,71 @@
 {
-  "name": "zodix",
-  "version": "0.4.4",
-  "description": "Parse Remix loaders and actions with Zod",
+  "name": "@coji/zodix",
+  "version": "0.5.0",
+  "description": "Parse React Router loaders and actions with Zod",
+  "license": "MIT",
+  "sideEffects": false,
   "type": "module",
-  "main": "dist/index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
   "files": [
     "dist"
   ],
-  "repository": "rileytomasek/zodix",
   "author": {
-    "name": "Riley Tomasek",
-    "email": "hi@rile.yt",
-    "url": "https://rile.yt"
+    "name": "Coji MIZOGUCHI",
+    "email": "coji@techtalk.jp",
+    "url": "https://techtalk.jp"
   },
-  "license": "MIT",
-  "private": false,
   "scripts": {
-    "build": "node build.js && tsc -b",
+    "build": "tsup",
+    "build:watch": "tsup --watch",
+    "clean": "rm -rf dist",
     "lint": "biome lint src",
-    "prepare": "pnpm build",
-    "prepublishOnly": "pnpm lint && pnpm typecheck",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --check .",
     "test": "vitest",
-    "release": "np",
-    "typecheck": "tsc"
+    "release": "np"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
-    "@react-router/node": "^7.5.1",
-    "esbuild": "^0.25.2",
-    "np": "10.2.0",
     "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^4.1.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
     "react-router": "^7.5.1",
+    "tsup": "^8.4.0",
     "typescript": "^5.8.3",
     "vite": "^6.3.2",
     "vitest": "^3.1.1",
     "zod": "^3.19.1"
   },
   "peerDependencies": {
-    "zod": "3.x"
+    "zod": "^3"
+  },
+  "peerDependenciesMeta": {
+    "zod": {
+      "optional": true
+    }
+  },
+  "engines": {
+    "node": ">=18"
   },
   "publishConfig": {
-    "access": "public",
-    "registry": "https://registry.npmjs.org"
+    "access": "public"
+  },
+  "homepage": "https://sdk.vercel.ai/docs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/coji/zodix.git"
+  },
+  "bugs": {
+    "url": "https://github.com/coji/zodix/issues"
   },
   "packageManager": "pnpm@10.8.1"
 }

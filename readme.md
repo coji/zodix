@@ -8,28 +8,28 @@ Remix loaders often look like:
 
 ```ts
 export async function loader({ params, request }: LoaderArgs) {
-  const { id } = params;
-  const url = new URL(request.url);
-  const count = url.searchParams.get('count') || '10';
+  const { id } = params
+  const url = new URL(request.url)
+  const count = url.searchParams.get('count') || '10'
   if (typeof id !== 'string') {
-    throw new Error('id must be a string');
+    throw new Error('id must be a string')
   }
-  const countNumber = parseInt(count, 10);
+  const countNumber = parseInt(count, 10)
   if (isNaN(countNumber)) {
-    throw new Error('count must be a number');
+    throw new Error('count must be a number')
   }
   // Fetch data with id and countNumber
-};
+}
 ```
 
 Here is the same loader with Zodix:
 
 ```ts
 export async function loader({ params, request }: LoaderArgs) {
-  const { id } = zx.parseParams(params, { id: z.string() });
-  const { count } = zx.parseQuery(request, { count: zx.NumAsString });
+  const { id } = zx.parseParams(params, { id: z.string() })
+  const { count } = zx.parseQuery(request, { count: zx.NumAsString })
   // Fetch data with id and countNumber
-};
+}
 ```
 
 Check the [example app](/examples/app/routes) for complete examples of common patterns.
@@ -57,7 +57,7 @@ npm install zodix zod
 Import the `zx` object, or specific functions:
 
 ```ts
-import { zx } from 'zodix';
+import { zx } from 'zodix'
 // import { parseParams, NumAsString } from 'zodix';
 ```
 
@@ -72,19 +72,19 @@ export async function loader({ params }: LoaderArgs) {
   const { userId, noteId } = zx.parseParams(params, {
     userId: z.string(),
     noteId: z.string(),
-  });
-};
+  })
+}
 ```
 
 The same as above, but using an existing Zod object schema:
 
 ```ts
 // This is if you have many pages that share the same params.
-export const ParamsSchema = z.object({ userId: z.string(), noteId: z.string() });
+export const ParamsSchema = z.object({ userId: z.string(), noteId: z.string() })
 
 export async function loader({ params }: LoaderArgs) {
-  const { userId, noteId } = zx.parseParams(params, ParamsSchema);
-};
+  const { userId, noteId } = zx.parseParams(params, ParamsSchema)
+}
 ```
 
 ### zx.parseForm(request: Request, schema: Schema)
@@ -97,8 +97,8 @@ export async function action({ request }: ActionArgs) {
     email: z.string().email(),
     password: z.string().min(6),
     saveSession: zx.CheckboxAsString,
-  });
-};
+  })
+}
 ```
 
 Integrate with existing Zod schemas and models/controllers:
@@ -109,18 +109,18 @@ export const CreateNoteSchema = z.object({
   userId: z.string(),
   title: z.string(),
   category: NoteCategorySchema.optional(),
-});
+})
 
 export function createNote(note: z.infer<typeof CreateNoteSchema>) {}
 ```
 
 ```ts
-import { CreateNoteSchema, createNote } from './db';
+import { CreateNoteSchema, createNote } from './db'
 
 export async function action({ request }: ActionArgs) {
-  const formData = await zx.parseForm(request, CreateNoteSchema);
-  createNote(formData); // No TypeScript errors here
-};
+  const formData = await zx.parseForm(request, CreateNoteSchema)
+  createNote(formData) // No TypeScript errors here
+}
 ```
 
 ### zx.parseQuery(request: Request, schema: Schema)
@@ -133,8 +133,8 @@ export async function loader({ request }: LoaderArgs) {
     // NumAsString parses a string number ("5") and returns a number (5)
     count: zx.NumAsString,
     page: zx.NumAsString,
-  });
-};
+  })
+}
 ```
 
 ### zx.parseParamsSafe() / zx.parseFormSafe() / zx.parseQuerySafe()
@@ -144,13 +144,15 @@ These work the same as the non-safe versions, but don't throw when validation fa
 ```ts
 export async function action(args: ActionArgs) {
   const results = await zx.parseFormSafe(args.request, {
-    email: z.string().email({ message: "Invalid email" }),
-    password: z.string().min(8, { message: "Password must be at least 8 characters" }),
-  });
+    email: z.string().email({ message: 'Invalid email' }),
+    password: z
+      .string()
+      .min(8, { message: 'Password must be at least 8 characters' }),
+  })
   return json({
     success: results.success,
     error: results.error,
-  });
+  })
 }
 ```
 
@@ -230,14 +232,14 @@ const Schema = z.object({
   agreedToTerms: zx.CheckboxAsString,
   age: zx.IntAsString,
   cost: zx.NumAsString,
-});
+})
 
 const parsed = Schema.parse({
   isAdmin: 'true',
   agreedToTerms: 'on',
   age: '38',
-  cost: '10.99'
-});
+  cost: '10.99',
+})
 
 /*
 parsed = {
@@ -282,20 +284,20 @@ Zod discriminated unions are great for helping with actions that handle multiple
 const Schema = z.discriminatedUnion('intent', [
   z.object({ intent: z.literal('delete'), id: z.string() }),
   z.object({ intent: z.literal('create'), name: z.string() }),
-]);
+])
 
 export async function action({ request }: ActionArgs) {
-  const data = await zx.parseForm(request, Schema);
+  const data = await zx.parseForm(request, Schema)
   switch (data.intent) {
     case 'delete':
       // data is now narrowed to { intent: 'delete', id: string }
-      return;
+      return
     case 'create':
       // data is now narrowed to { intent: 'create', name: string }
-      return;
+      return
     default:
       // data is now narrowed to never. This will error if a case is missing.
-      const _exhaustiveCheck: never = data;
+      const _exhaustiveCheck: never = data
   }
-};
+}
 ```

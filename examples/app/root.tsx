@@ -1,27 +1,26 @@
-import type { MetaFunction } from "@remix-run/node";
+import type { MetaFunction } from "@remix-run/node"
 import {
   Link,
   Links,
   LiveReload,
-  Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
   useCatch,
-} from "@remix-run/react";
+} from "@remix-run/react"
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
   title: "New Remix App",
   viewport: "width=device-width,initial-scale=1",
-});
+})
 
 function Document({
   children,
   title = `Zodix Examples`,
 }: {
-  children: React.ReactNode;
-  title?: string;
+  children: React.ReactNode
+  title?: string
 }) {
   return (
     <html lang="en">
@@ -37,7 +36,7 @@ function Document({
         <LiveReload />
       </body>
     </html>
-  );
+  )
 }
 
 export default function App() {
@@ -46,11 +45,11 @@ export default function App() {
       <Link to="/">Home</Link>
       <Outlet />
     </Document>
-  );
+  )
 }
 
 export function CatchBoundary() {
-  const caught = useCatch();
+  const caught = useCatch()
 
   return (
     <Document title={`${caught.status} ${caught.statusText}`}>
@@ -60,7 +59,7 @@ export function CatchBoundary() {
         </h1>
       </div>
     </Document>
-  );
+  )
 }
 
 export function ErrorBoundary({ error }: { error: Error }) {
@@ -71,5 +70,5 @@ export function ErrorBoundary({ error }: { error: Error }) {
         <pre>{error.message}</pre>
       </div>
     </Document>
-  );
+  )
 }

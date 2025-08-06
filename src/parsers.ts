@@ -5,8 +5,8 @@ import type {
   ZodObject,
   ZodRawShape,
   ZodTypeAny,
-} from 'zod'
-import { z } from 'zod'
+} from 'zod/v3'
+import { z } from 'zod/v3'
 import { createErrorResponse } from './errors'
 
 type Options<Parser = SearchParamsParser> = {

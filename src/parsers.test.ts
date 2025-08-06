@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import type { Params } from 'react-router'
-import { z } from 'zod'
+import { z } from 'zod/v3'
 import { zx } from './'
 
 describe('parseParams', () => {

@@ -1,13 +1,14 @@
 import type { Params } from 'react-router'
-import type {
-  output,
-  SafeParseReturnType,
-  ZodObject,
-  ZodRawShape,
-  ZodTypeAny,
-} from 'zod/v3'
-import { z } from 'zod/v3'
+import { createObjectSchema } from './compat/object'
+import { parseAsyncCompat, parseCompat, safeParseCompat } from './compat/parser'
 import { createErrorResponse } from './errors'
+import type {
+  OutputCompat,
+  SafeParseResultCompat,
+  ZodRawShapeCompat,
+  ZodSchemaCompat,
+} from './types/compat'
+import { isZodSchema } from './types/guards'
 
 type Options<Parser = SearchParamsParser> = {
   /** Custom error message for when the validation fails. */
@@ -19,30 +20,27 @@ type Options<Parser = SearchParamsParser> = {
 }
 
 /**
- * Type assertion function avoids problems with some bundlers when
- * using `instanceof` to check the type of a `schema` param.
- */
-const isZodType = (input: ZodRawShape | ZodTypeAny): input is ZodTypeAny => {
-  return typeof input.parse === 'function'
-}
-
-/**
  * Generic return type for parseX functions.
  */
-type ParsedData<T extends ZodRawShape | ZodTypeAny> = T extends ZodTypeAny
-  ? output<T>
-  : T extends ZodRawShape
-    ? output<ZodObject<T>>
-    : never
+type ParsedData<T extends ZodRawShapeCompat | ZodSchemaCompat> =
+  T extends ZodSchemaCompat
+    ? OutputCompat<T>
+    : T extends ZodRawShapeCompat
+      ? OutputCompat<ReturnType<typeof createObjectSchema>>
+      : never
 
 /**
  * Generic return type for parseXSafe functions.
  */
-type SafeParsedData<T extends ZodRawShape | ZodTypeAny> = T extends ZodTypeAny
-  ? SafeParseReturnType<z.infer<T>, ParsedData<T>>
-  : T extends ZodRawShape
-    ? SafeParseReturnType<ZodObject<T>, ParsedData<T>>
-    : never
+type SafeParsedData<T extends ZodRawShapeCompat | ZodSchemaCompat> =
+  T extends ZodSchemaCompat
+    ? SafeParseResultCompat<any, OutputCompat<T>>
+    : T extends ZodRawShapeCompat
+      ? SafeParseResultCompat<
+          any,
+          OutputCompat<ReturnType<typeof createObjectSchema>>
+        >
+      : never
 
 /**
  * Parse and validate Params from LoaderArgs or ActionArgs. Throws an error if validation fails.
@@ -50,14 +48,16 @@ type SafeParsedData<T extends ZodRawShape | ZodTypeAny> = T extends ZodTypeAny
  * @param schema - A Zod object shape or object schema to validate.
  * @throws {Response} - Throws an error Response if validation fails.
  */
-export function parseParams<T extends ZodRawShape | ZodTypeAny>(
+export function parseParams<T extends ZodRawShapeCompat | ZodSchemaCompat>(
   params: Params,
   schema: T,
   options?: Options,
 ): ParsedData<T> {
   try {
-    const finalSchema = isZodType(schema) ? schema : z.object(schema)
-    return finalSchema.parse(params)
+    const finalSchema = isZodSchema(schema)
+      ? (schema as ZodSchemaCompat)
+      : createObjectSchema(schema as ZodRawShapeCompat)
+    return parseCompat(finalSchema, params) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
@@ -69,12 +69,14 @@ export function parseParams<T extends ZodRawShape | ZodTypeAny>(
  * @param schema - A Zod object shape or object schema to validate.
  * @returns {SafeParseReturnType} - An object with the parsed data or a ZodError.
  */
-export function parseParamsSafe<T extends ZodRawShape | ZodTypeAny>(
+export function parseParamsSafe<T extends ZodRawShapeCompat | ZodSchemaCompat>(
   params: Params,
   schema: T,
 ): SafeParsedData<T> {
-  const finalSchema = isZodType(schema) ? schema : z.object(schema)
-  return finalSchema.safeParse(params) as SafeParsedData<T>
+  const finalSchema = isZodSchema(schema)
+    ? (schema as ZodSchemaCompat)
+    : createObjectSchema(schema as ZodRawShapeCompat)
+  return safeParseCompat(finalSchema, params) as SafeParsedData<T>
 }
 
 /**
@@ -83,7 +85,7 @@ export function parseParamsSafe<T extends ZodRawShape | ZodTypeAny>(
  * @param schema - A Zod object shape or object schema to validate.
  * @throws {Response} - Throws an error Response if validation fails.
  */
-export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
+export function parseQuery<T extends ZodRawShapeCompat | ZodSchemaCompat>(
   request: Request | URLSearchParams,
   schema: T,
   options?: Options,
@@ -93,8 +95,10 @@ export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
       ? request
       : getSearchParamsFromRequest(request)
     const params = parseSearchParams(searchParams, options?.parser)
-    const finalSchema = isZodType(schema) ? schema : z.object(schema)
-    return finalSchema.parse(params)
+    const finalSchema = isZodSchema(schema)
+      ? (schema as ZodSchemaCompat)
+      : createObjectSchema(schema as ZodRawShapeCompat)
+    return parseCompat(finalSchema, params) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
@@ -106,7 +110,7 @@ export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
  * @param schema - A Zod object shape or object schema to validate.
  * @returns {SafeParseReturnType} - An object with the parsed data or a ZodError.
  */
-export function parseQuerySafe<T extends ZodRawShape | ZodTypeAny>(
+export function parseQuerySafe<T extends ZodRawShapeCompat | ZodSchemaCompat>(
   request: Request | URLSearchParams,
   schema: T,
   options?: Options,
@@ -115,8 +119,10 @@ export function parseQuerySafe<T extends ZodRawShape | ZodTypeAny>(
     ? request
     : getSearchParamsFromRequest(request)
   const params = parseSearchParams(searchParams, options?.parser)
-  const finalSchema = isZodType(schema) ? schema : z.object(schema)
-  return finalSchema.safeParse(params) as SafeParsedData<T>
+  const finalSchema = isZodSchema(schema)
+    ? (schema as ZodSchemaCompat)
+    : createObjectSchema(schema as ZodRawShapeCompat)
+  return safeParseCompat(finalSchema, params) as SafeParsedData<T>
 }
 
 /**
@@ -126,7 +132,7 @@ export function parseQuerySafe<T extends ZodRawShape | ZodTypeAny>(
  * @throws {Response} - Throws an error Response if validation fails.
  */
 export async function parseForm<
-  T extends ZodRawShape | ZodTypeAny,
+  T extends ZodRawShapeCompat | ZodSchemaCompat,
   Parser extends FormDataParser<any>,
 >(
   request: Request | FormData,
@@ -138,8 +144,10 @@ export async function parseForm<
       ? request
       : await request.clone().formData()
     const data = await parseFormData(formData, options?.parser)
-    const finalSchema = isZodType(schema) ? schema : z.object(schema)
-    return await finalSchema.parseAsync(data)
+    const finalSchema = isZodSchema(schema)
+      ? (schema as ZodSchemaCompat)
+      : createObjectSchema(schema as ZodRawShapeCompat)
+    return (await parseAsyncCompat(finalSchema, data)) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
@@ -152,7 +160,7 @@ export async function parseForm<
  * @returns {SafeParseReturnType} - An object with the parsed data or a ZodError.
  */
 export async function parseFormSafe<
-  T extends ZodRawShape | ZodTypeAny,
+  T extends ZodRawShapeCompat | ZodSchemaCompat,
   Parser extends FormDataParser<any>,
 >(
   request: Request | FormData,
@@ -163,8 +171,15 @@ export async function parseFormSafe<
     ? request
     : await request.clone().formData()
   const data = await parseFormData(formData, options?.parser)
-  const finalSchema = isZodType(schema) ? schema : z.object(schema)
-  return finalSchema.safeParseAsync(data) as Promise<SafeParsedData<T>>
+  const finalSchema = isZodSchema(schema)
+    ? (schema as ZodSchemaCompat)
+    : createObjectSchema(schema as ZodRawShapeCompat)
+  try {
+    const result = await parseAsyncCompat(finalSchema, data)
+    return { success: true, data: result } as SafeParsedData<T>
+  } catch (error) {
+    return { success: false, error } as SafeParsedData<T>
+  }
 }
 
 /**

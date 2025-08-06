@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/** biome-ignore-all lint/correctness/noUnusedVariables: type check */
 import type { Params } from 'react-router'
 import { z } from 'zod/v3'
 import { zx } from './'

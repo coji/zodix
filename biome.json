@@ -11,9 +11,6 @@
       "recommended": true,
       "suspicious": {
         "noExplicitAny": "off"
-      },
-      "correctness": {
-        "noUnusedVariables": "off"
       }
     }
   }

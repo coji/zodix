@@ -58,7 +58,7 @@ export function parseParams<T extends ZodRawShape | ZodTypeAny>(
   try {
     const finalSchema = isZodType(schema) ? schema : z.object(schema)
     return finalSchema.parse(params)
-  } catch (error) {
+  } catch (_error) {
     throw createErrorResponse(options)
   }
 }
@@ -95,7 +95,7 @@ export function parseQuery<T extends ZodRawShape | ZodTypeAny>(
     const params = parseSearchParams(searchParams, options?.parser)
     const finalSchema = isZodType(schema) ? schema : z.object(schema)
     return finalSchema.parse(params)
-  } catch (error) {
+  } catch (_error) {
     throw createErrorResponse(options)
   }
 }
@@ -140,7 +140,7 @@ export async function parseForm<
     const data = await parseFormData(formData, options?.parser)
     const finalSchema = isZodType(schema) ? schema : z.object(schema)
     return await finalSchema.parseAsync(data)
-  } catch (error) {
+  } catch (_error) {
     throw createErrorResponse(options)
   }
 }
@@ -188,13 +188,6 @@ type ParsedFormData = Record<string, string | string[] | File>
  * Function signature to allow for custom FormData parsing.
  */
 type FormDataParser<T = ParsedFormData> = (formData: FormData) => T
-
-/**
- * Check if an object entry value is an instance of Object
- */
-function isObjectEntry([, value]: [string, FormDataEntryValue]) {
-  return value instanceof Object
-}
 
 /**
  * Get the form data from a request as an object.

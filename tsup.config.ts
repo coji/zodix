@@ -7,4 +7,7 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
+  external: ['zod', 'zod/v3', 'zod/v4/core'],
+  treeshake: true,
+  splitting: false,
 })

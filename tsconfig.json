@@ -4,18 +4,19 @@
   "compilerOptions": {
     "allowJs": false,
     "declaration": true,
-    "downlevelIteration": true,
     "emitDeclarationOnly": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "isolatedModules": true,
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
+    "module": "ESNext",
     "moduleResolution": "node",
     "outDir": "dist",
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
     "target": "ES2022",
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    "verbatimModuleSyntax": true
   }
 }

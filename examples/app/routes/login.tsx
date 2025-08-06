@@ -12,7 +12,6 @@ const schema = z.object({
 
 // Check if there is an error for a specific path.
 function errorAtPath(error: ZodError, path: string) {
-  console.log('errorAtPath', { error, path })
   return error.issues.find((issue) => issue.path[0] === path)?.message
 }
 

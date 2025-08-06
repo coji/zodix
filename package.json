@@ -33,8 +33,7 @@
     "format": "prettier --check . --experimental-cli",
     "format:fix": "prettier --write . --experimental-cli",
     "test": "vitest",
-    "validate": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run format",
-    "release": "np"
+    "validate": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run format"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.3",

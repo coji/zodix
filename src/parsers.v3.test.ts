@@ -13,13 +13,13 @@ describe('parseParams', () => {
   test('parses params using an object', () => {
     const result = zx.parseParams(params, objectSchema)
     expect(result).toStrictEqual(paramsResult)
-    // type verify = Expect<Equal<typeof result, Result>>
+    type verify = Expect<Equal<typeof result, Result>>
   })
 
   test('parses params using a schema', () => {
     const result = zx.parseParams(params, zodSchema)
     expect(result).toStrictEqual(paramsResult)
-    // type verify = Expect<Equal<typeof result, Result>>
+    type verify = Expect<Equal<typeof result, Result>>
   })
 
   test('throws for invalid params using an object', () => {

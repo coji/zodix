@@ -1,8 +1,6 @@
 // Zod v4専用のパーサー実装
 import type { Params } from 'react-router'
-import { z } from 'zod/v4'
-import type { ZodSafeParseResult } from 'zod/v4/classic/parse'
-import * as z4 from 'zod/v4/core'
+import * as z from 'zod/v4'
 import { createErrorResponse } from './errors'
 
 type Options<Parser = SearchParamsParser> = {
@@ -14,56 +12,54 @@ type Options<Parser = SearchParamsParser> = {
 type SearchParamsParser = (searchParams: URLSearchParams) => Record<string, any>
 export type FormDataParser = (formData: FormData) => Record<string, any>
 
-export type ParsedData<T extends Record<string, z4.$ZodType> | z4.$ZodType> =
-  T extends z4.$ZodType
-    ? z4.output<T>
-    : T extends Record<string, z4.$ZodType>
-      ? z4.output<z4.$ZodObject<T>>
+// Classic API型を使用 - ZodTypeAnyを使うことで、classicとcoreの両方に対応
+export type ParsedData<T extends z.ZodRawShape | z.ZodTypeAny> =
+  T extends z.ZodTypeAny
+    ? z.output<T>
+    : T extends z.ZodRawShape
+      ? z.output<z.ZodObject<T>>
       : never
 
-export type SafeParsedData<
-  T extends Record<string, z4.$ZodType> | z4.$ZodType,
-> = T extends z4.$ZodType
-  ? ZodSafeParseResult<z4.output<T>>
-  : T extends Record<string, z4.$ZodType>
-    ? ZodSafeParseResult<z4.output<z4.$ZodObject<T>>>
-    : never
+// ZodSafeParseResult型を直接インポート
+import type { ZodSafeParseResult } from 'zod/v4/classic/parse'
 
-function isZodV4Schema(value: unknown): value is z4.$ZodType {
+export type SafeParsedData<T extends z.ZodRawShape | z.ZodTypeAny> =
+  T extends z.ZodTypeAny
+    ? ZodSafeParseResult<z.output<T>>
+    : T extends z.ZodRawShape
+      ? ZodSafeParseResult<z.output<z.ZodObject<T>>>
+      : never
+
+function isZodV4Schema(value: unknown): value is z.ZodTypeAny {
   return typeof value === 'object' && value !== null && '_zod' in value
 }
 
-function createV4ObjectSchema(
-  shape: Record<string, z4.$ZodType>,
-): z4.$ZodObject {
-  // Zod v4 coreには`object`関数がないため、v4 classicのz.objectを使用
-  // z.objectはZodObjectを返すが、内部的には$ZodObjectなので型アサーションが必要
-  return z.object(shape as any) as z4.$ZodObject
-}
-
-export function parseParams<
-  T extends Record<string, z4.$ZodType> | z4.$ZodType,
->(params: Params, schema: T, options?: Options): ParsedData<T> {
+export function parseParams<T extends z.ZodRawShape | z.ZodTypeAny>(
+  params: Params,
+  schema: T,
+  options?: Options,
+): ParsedData<T> {
   try {
     const finalSchema = isZodV4Schema(schema)
       ? schema
-      : createV4ObjectSchema(schema as Record<string, z4.$ZodType>)
-    return z4.parse(finalSchema, params) as ParsedData<T>
+      : z.object(schema as z.ZodRawShape)
+    return finalSchema.parse(params) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
 }
 
-export function parseParamsSafe<
-  T extends Record<string, z4.$ZodType> | z4.$ZodType,
->(params: Params, schema: T): SafeParsedData<T> {
+export function parseParamsSafe<T extends z.ZodRawShape | z.ZodTypeAny>(
+  params: Params,
+  schema: T,
+): SafeParsedData<T> {
   const finalSchema = isZodV4Schema(schema)
     ? schema
-    : createV4ObjectSchema(schema as Record<string, z4.$ZodType>)
-  return z4.safeParse(finalSchema, params) as SafeParsedData<T>
+    : z.object(schema as z.ZodRawShape)
+  return finalSchema.safeParse(params) as SafeParsedData<T>
 }
 
-export function parseQuery<T extends Record<string, z4.$ZodType> | z4.$ZodType>(
+export function parseQuery<T extends z.ZodRawShape | z.ZodTypeAny>(
   request: Request | URLSearchParams,
   schema: T,
   options?: Options,
@@ -75,16 +71,14 @@ export function parseQuery<T extends Record<string, z4.$ZodType> | z4.$ZodType>(
     const params = parseSearchParams(searchParams, options?.parser)
     const finalSchema = isZodV4Schema(schema)
       ? schema
-      : createV4ObjectSchema(schema as Record<string, z4.$ZodType>)
-    return z4.parse(finalSchema, params) as ParsedData<T>
+      : z.object(schema as z.ZodRawShape)
+    return finalSchema.parse(params) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
 }
 
-export function parseQuerySafe<
-  T extends Record<string, z4.$ZodType> | z4.$ZodType,
->(
+export function parseQuerySafe<T extends z.ZodRawShape | z.ZodTypeAny>(
   request: Request | URLSearchParams,
   schema: T,
   options?: Options,
@@ -95,13 +89,11 @@ export function parseQuerySafe<
   const params = parseSearchParams(searchParams, options?.parser)
   const finalSchema = isZodV4Schema(schema)
     ? schema
-    : createV4ObjectSchema(schema as Record<string, z4.$ZodType>)
-  return z4.safeParse(finalSchema, params) as SafeParsedData<T>
+    : z.object(schema as z.ZodRawShape)
+  return finalSchema.safeParse(params) as SafeParsedData<T>
 }
 
-export async function parseForm<
-  T extends Record<string, z4.$ZodType> | z4.$ZodType,
->(
+export async function parseForm<T extends z.ZodRawShape | z.ZodTypeAny>(
   request: Request | FormData,
   schema: T,
   options?: Options<FormDataParser>,
@@ -114,16 +106,14 @@ export async function parseForm<
       : parseFormData(formData)
     const finalSchema = isZodV4Schema(schema)
       ? schema
-      : createV4ObjectSchema(schema as Record<string, z4.$ZodType>)
-    return (await z4.parseAsync(finalSchema, params)) as ParsedData<T>
+      : z.object(schema as z.ZodRawShape)
+    return (await finalSchema.parseAsync(params)) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
 }
 
-export async function parseFormSafe<
-  T extends Record<string, z4.$ZodType> | z4.$ZodType,
->(
+export async function parseFormSafe<T extends z.ZodRawShape | z.ZodTypeAny>(
   request: Request | FormData,
   schema: T,
   options?: Options<FormDataParser>,
@@ -135,8 +125,8 @@ export async function parseFormSafe<
     : parseFormData(formData)
   const finalSchema = isZodV4Schema(schema)
     ? schema
-    : createV4ObjectSchema(schema as Record<string, z4.$ZodType>)
-  return z4.safeParseAsync(finalSchema, params) as Promise<SafeParsedData<T>>
+    : z.object(schema as z.ZodRawShape)
+  return finalSchema.safeParseAsync(params) as Promise<SafeParsedData<T>>
 }
 
 // Helper functions

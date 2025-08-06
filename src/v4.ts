@@ -1,24 +1,6 @@
 // Zod v4用のエクスポート
-import type { ZodSafeParseResult } from 'zod/v4/classic/parse'
-import type * as z4 from 'zod/v4/core'
 
-// Zod v4 Classicの公開型を使用
-export type ParsedData<T extends Record<string, z4.$ZodType> | z4.$ZodType> =
-  T extends z4.$ZodType
-    ? z4.output<T>
-    : T extends Record<string, z4.$ZodType>
-      ? z4.output<z4.$ZodObject<T>>
-      : never
-
-export type SafeParsedData<
-  T extends Record<string, z4.$ZodType> | z4.$ZodType,
-> = T extends z4.$ZodType
-  ? ZodSafeParseResult<z4.output<T>>
-  : T extends Record<string, z4.$ZodType>
-    ? ZodSafeParseResult<z4.output<z4.$ZodObject<T>>>
-    : never
-
-// 実際の関数は共通実装を使い、型だけv4用にする
+// パーサー関数と型をエクスポート
 export {
   parseForm,
   parseFormSafe,
@@ -27,6 +9,8 @@ export {
   parseQuery,
   parseQuerySafe,
   type FormDataParser,
+  type ParsedData,
+  type SafeParsedData,
 } from './parsers.v4'
 
 export {

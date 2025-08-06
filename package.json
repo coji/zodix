@@ -48,7 +48,7 @@
     "zod": "^4.0.15"
   },
   "peerDependencies": {
-    "zod": "^3 || ^4"
+    "zod": "^3.25.0 || ^4.0.0"
   },
   "peerDependenciesMeta": {
     "zod": {

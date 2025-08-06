@@ -1,4 +1,4 @@
-import { zx } from '@coji/zodix'
+import { zx } from '@coji/zodix/v4'
 import { Form } from 'react-router'
 import { type ZodError, z } from 'zod'
 import type { Route } from './+types/login'

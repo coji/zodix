@@ -1,6 +1,6 @@
-import { zx } from '@coji/zodix'
+import { zx } from '@coji/zodix/v4'
 import { Form } from 'react-router'
-import { z } from 'zod/v4'
+import { z } from 'zod'
 import type { Route } from './+types/search'
 
 export async function loader({ request }: Route.LoaderArgs) {

@@ -1,4 +1,4 @@
-import { zx } from '@coji/zodix'
+import { zx } from '@coji/zodix/v4'
 import { isRouteErrorResponse, useRouteError } from 'react-router'
 import type { Route } from './+types/$postId'
 

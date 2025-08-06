@@ -1,4 +1,4 @@
-import { zx } from './'
+import { zx } from './v3'
 
 describe('BoolAsString', () => {
   test('parses true as string', () => {

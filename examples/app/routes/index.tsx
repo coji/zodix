@@ -1,8 +1,8 @@
-import { Link } from "react-router"
+import { Link } from 'react-router'
 
 export default function Index() {
   return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.4" }}>
+    <div style={{ fontFamily: 'system-ui, sans-serif', lineHeight: '1.4' }}>
       <h1>Zodix Examples</h1>
       <ul>
         <li>
@@ -18,8 +18,8 @@ export default function Index() {
           </Link>
           <p>
             The parsing will fail here because $postId isn't a number. It will
-            throw a Response, which is caught by the route's ErrorBoundary.
-            It could also bubble up a higher level ErrorBoundary if you prefer.
+            throw a Response, which is caught by the route's ErrorBoundary. It
+            could also bubble up a higher level ErrorBoundary if you prefer.
           </p>
         </li>
         <li>

@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/correctness/noUnusedVariables: type check */
 import type { Params } from 'react-router'
 import { z } from 'zod/v3'
-import { zx } from './'
+import { zx } from './v3'
 
 describe('parseParams', () => {
   type Result = { id: string; age: number }
@@ -396,11 +396,9 @@ describe('parseForm', () => {
     })
     form.append('image', image)
     const parser = getCustomFileParser('image')
-    const result = await zx.parseForm<typeof zodSchema, typeof parser>(
-      form,
-      zodSchema,
-      { parser },
-    )
+    const result = await zx.parseForm<typeof zodSchema>(form, zodSchema, {
+      parser,
+    })
     expect(result).toStrictEqual({
       ...formResult,
       image,
@@ -417,11 +415,9 @@ describe('parseForm', () => {
     })
     form.append('image', image)
     const parser = getCustomFileParser('image')
-    const result = await zx.parseForm<typeof asyncSchema, typeof parser>(
-      form,
-      asyncSchema,
-      { parser },
-    )
+    const result = await zx.parseForm<typeof asyncSchema>(form, asyncSchema, {
+      parser,
+    })
     expect(result).toStrictEqual({
       ...formResult,
       image,
@@ -538,11 +534,9 @@ describe('parseFormSafe', () => {
     })
     form.append('image', image)
     const parser = getCustomFileParser('image')
-    const result = await zx.parseFormSafe<typeof zodSchema, typeof parser>(
-      form,
-      zodSchema,
-      { parser },
-    )
+    const result = await zx.parseFormSafe<typeof zodSchema>(form, zodSchema, {
+      parser,
+    })
     expect(result.success).toBe(true)
     if (result.success !== true) throw new Error('Parsing failed')
     expect(result.data).toStrictEqual({
@@ -561,7 +555,7 @@ describe('parseFormSafe', () => {
     })
     form.append('image', image)
     const parser = getCustomFileParser('image')
-    const result = await zx.parseFormSafe<typeof asyncSchema, typeof parser>(
+    const result = await zx.parseFormSafe<typeof asyncSchema>(
       form,
       asyncSchema,
       { parser },

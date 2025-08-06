@@ -1,6 +1,5 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.1.3/schema.json",
-  "root": true,
   "assist": { "actions": { "source": { "organizeImports": "off" } } },
   "vcs": {
     "enabled": true,
@@ -10,10 +9,7 @@
   "linter": {
     "enabled": true,
     "rules": {
-      "recommended": true,
-      "suspicious": {
-        "noExplicitAny": "off"
-      }
+      "recommended": true
     }
   }
 }

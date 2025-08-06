@@ -8,6 +8,6 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['./src/**/*.test.ts'],
-    watchExclude: ['.*\\/node_modules\\/.*', '.*\\/build\\/.*'],
+    exclude: ['.*\\/node_modules\\/.*', '.*\\/build\\/.*'],
   },
 })

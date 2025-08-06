@@ -14,6 +14,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
+    },
+    "./v4": {
+      "types": "./dist/v4.d.ts",
+      "import": "./dist/v4.js",
+      "require": "./dist/v4.cjs"
     }
   },
   "files": [
@@ -33,8 +38,7 @@
     "format": "prettier --check . --experimental-cli",
     "format:fix": "prettier --write . --experimental-cli",
     "test": "vitest",
-    "validate": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run format",
-    "release": "np"
+    "validate": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run format"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.1.3",
@@ -48,7 +52,7 @@
     "zod": "^4.0.15"
   },
   "peerDependencies": {
-    "zod": "^3 || ^4"
+    "zod": "^3.25.0 || ^4.0.0"
   },
   "peerDependenciesMeta": {
     "zod": {

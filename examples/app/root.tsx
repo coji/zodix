@@ -1,39 +1,33 @@
-import type { MetaFunction } from "@remix-run/node"
 import {
+  isRouteErrorResponse,
   Link,
   Links,
-  LiveReload,
+  Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
-  useCatch,
-} from "@remix-run/react"
+  useRouteError,
+} from 'react-router'
 
-export const meta: MetaFunction = () => ({
-  charset: "utf-8",
-  title: "New Remix App",
-  viewport: "width=device-width,initial-scale=1",
-})
+export function meta() {
+  return [
+    { title: 'Zodix Examples' },
+    { name: 'viewport', content: 'width=device-width,initial-scale=1' },
+  ]
+}
 
-function Document({
-  children,
-  title = `Zodix Examples`,
-}: {
-  children: React.ReactNode
-  title?: string
-}) {
+export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
         <meta charSet="utf-8" />
-        <title>{title}</title>
+        <Meta />
         <Links />
       </head>
       <body>
         {children}
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   )
@@ -41,34 +35,41 @@ function Document({
 
 export default function App() {
   return (
-    <Document>
+    <>
       <Link to="/">Home</Link>
       <Outlet />
-    </Document>
+    </>
   )
 }
 
-export function CatchBoundary() {
-  const caught = useCatch()
+export function ErrorBoundary() {
+  const error = useRouteError()
 
-  return (
-    <Document title={`${caught.status} ${caught.statusText}`}>
+  if (isRouteErrorResponse(error)) {
+    return (
       <div>
         <h1>
-          {caught.status} {caught.statusText}
+          Route Error: {error.status} {error.statusText}
         </h1>
       </div>
-    </Document>
-  )
-}
+    )
+  }
 
-export function ErrorBoundary({ error }: { error: Error }) {
-  return (
-    <Document title="Uh-oh!">
+  if (error instanceof Response) {
+    return (
       <div>
-        <h1>App Error</h1>
-        <pre>{error.message}</pre>
+        <h1>Response Error</h1>
+        <pre>
+          {error.status} {error.statusText}
+        </pre>
       </div>
-    </Document>
+    )
+  }
+
+  return (
+    <div>
+      <h1>App Error</h1>
+      <pre>{error instanceof Error ? error.message : 'Unknown error'}</pre>
+    </div>
   )
 }

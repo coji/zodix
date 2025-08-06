@@ -1,4 +1,4 @@
-// Zod v4専用のパーサー実装
+// Parser implementation for Zod v4
 import type { Params } from 'react-router'
 import * as z from 'zod/v4'
 import { createErrorResponse } from './errors'
@@ -12,7 +12,7 @@ type Options<Parser = SearchParamsParser> = {
 type SearchParamsParser = (searchParams: URLSearchParams) => Record<string, any>
 export type FormDataParser = (formData: FormData) => Record<string, any>
 
-// Classic API型を使用 - ZodTypeAnyを使うことで、classicとcoreの両方に対応
+// Use Classic API types - ZodTypeAny supports both classic and core
 export type ParsedData<T extends z.ZodRawShape | z.ZodTypeAny> =
   T extends z.ZodTypeAny
     ? z.output<T>
@@ -20,7 +20,7 @@ export type ParsedData<T extends z.ZodRawShape | z.ZodTypeAny> =
       ? z.output<z.ZodObject<T>>
       : never
 
-// ZodSafeParseResult型を直接インポート
+// Import ZodSafeParseResult type directly
 import type { ZodSafeParseResult } from 'zod/v4/classic/parse'
 
 export type SafeParsedData<T extends z.ZodRawShape | z.ZodTypeAny> =

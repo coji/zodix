@@ -1,4 +1,4 @@
-// Zod v3用のエクスポート（デフォルト）
+// Exports for Zod v3 (default)
 import type * as z3 from 'zod/v3'
 
 export type ParsedData<T extends z3.ZodRawShape | z3.ZodTypeAny> =
@@ -15,7 +15,7 @@ export type SafeParsedData<T extends z3.ZodRawShape | z3.ZodTypeAny> =
       ? z3.SafeParseReturnType<any, z3.output<z3.ZodObject<T>>>
       : never
 
-// 実際の関数は共通実装を使い、型だけv3用にする
+// Export parser functions and types for v3
 export {
   parseForm,
   parseFormSafe,

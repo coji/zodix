@@ -1,6 +1,6 @@
-// Zod v4用のエクスポート
+// Exports for Zod v4
 
-// パーサー関数と型をエクスポート
+// Export parser functions and types
 export {
   parseForm,
   parseFormSafe,

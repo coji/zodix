@@ -1,4 +1,4 @@
-// Zod v3専用のパーサー実装
+// Parser implementation for Zod v3
 import type { Params } from 'react-router'
 import * as z3 from 'zod/v3'
 import { createErrorResponse } from './errors'
@@ -134,7 +134,7 @@ export async function parseFormSafe<T extends z3.ZodRawShape | z3.ZodTypeAny>(
     ? (schema as z3.ZodTypeAny)
     : createV3ObjectSchema(schema as z3.ZodRawShape)
 
-  // Zod v3のsafeParseAsyncを使用
+  // Use Zod v3's safeParseAsync
   return finalSchema.safeParseAsync(params) as Promise<SafeParsedData<T>>
 }
 

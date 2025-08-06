@@ -1,5 +1,6 @@
 // Zod v4専用のパーサー実装
 import type { Params } from 'react-router'
+import { z } from 'zod/v4'
 import type { ZodSafeParseResult } from 'zod/v4/classic/parse'
 import * as z4 from 'zod/v4/core'
 import { createErrorResponse } from './errors'
@@ -35,13 +36,9 @@ function isZodV4Schema(value: unknown): value is z4.$ZodType {
 function createV4ObjectSchema(
   shape: Record<string, z4.$ZodType>,
 ): z4.$ZodObject {
-  // Zod v4のobjectスキーマを作成 - 最小限の定義で
-  const def: z4.$ZodObjectDef = {
-    type: 'object',
-    shape,
-  }
-  // @ts-ignore - 内部APIを使用
-  return new z4.$ZodObject(def)
+  // Zod v4 coreには`object`関数がないため、v4 classicのz.objectを使用
+  // z.objectはZodObjectを返すが、内部的には$ZodObjectなので型アサーションが必要
+  return z.object(shape as any) as z4.$ZodObject
 }
 
 export function parseParams<

@@ -1,4 +1,4 @@
-import { Link } from "@remix-run/react"
+import { Link } from "react-router"
 
 export default function Index() {
   return (
@@ -18,8 +18,8 @@ export default function Index() {
           </Link>
           <p>
             The parsing will fail here because $postId isn't a number. It will
-            throw a Response, which is caught by the components CatchBoundary.
-            It could also bubble up a higher level CatchBoundary if you prefer.
+            throw a Response, which is caught by the route's ErrorBoundary.
+            It could also bubble up a higher level ErrorBoundary if you prefer.
           </p>
         </li>
         <li>

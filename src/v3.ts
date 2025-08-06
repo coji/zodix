@@ -1,19 +1,4 @@
 // Exports for Zod v3 (default)
-import type * as z3 from 'zod/v3'
-
-export type ParsedData<T extends z3.ZodRawShape | z3.ZodTypeAny> =
-  T extends z3.ZodTypeAny
-    ? z3.output<T>
-    : T extends z3.ZodRawShape
-      ? z3.output<z3.ZodObject<T>>
-      : never
-
-export type SafeParsedData<T extends z3.ZodRawShape | z3.ZodTypeAny> =
-  T extends z3.ZodTypeAny
-    ? z3.SafeParseReturnType<any, z3.output<T>>
-    : T extends z3.ZodRawShape
-      ? z3.SafeParseReturnType<any, z3.output<z3.ZodObject<T>>>
-      : never
 
 // Export parser functions and types for v3
 export {
@@ -24,6 +9,8 @@ export {
   parseQuery,
   parseQuerySafe,
   type FormDataParser,
+  type ParsedData,
+  type SafeParsedData,
 } from './parsers.v3'
 
 export {

@@ -1,13 +1,15 @@
 # Zodix
 
-[![Build Status](https://github.com/rileytomasek/zodix/actions/workflows/main.yml/badge.svg)](https://github.com/rileytomasek/zodix/actions/workflows/main.yml) [![npm version](https://img.shields.io/npm/v/zodix.svg?color=0c0)](https://www.npmjs.com/package/zodix)
+[![Build Status](https://github.com/coji/zodix/actions/workflows/main.yml/badge.svg)](https://github.com/coji/zodix/actions/workflows/main.yml) [![npm version](https://img.shields.io/npm/v/@coji/zodix.svg?color=0c0)](https://www.npmjs.com/package/@coji/zodix)
 
-Zodix is a collection of [Zod](https://github.com/colinhacks/zod) utilities for [Remix](https://github.com/remix-run/remix) loaders and actions. It abstracts the complexity of parsing and validating `FormData` and `URLSearchParams` so your loaders/actions stay clean and are strongly typed.
+Zodix is a collection of [Zod](https://github.com/colinhacks/zod) utilities for [React Router v7](https://reactrouter.com) loaders and actions. It abstracts the complexity of parsing and validating `FormData` and `URLSearchParams` so your loaders/actions stay clean and are strongly typed.
 
-Remix loaders often look like:
+**✨ Now with full support for both Zod v3 and v4!**
+
+React Router loaders often look like:
 
 ```ts
-export async function loader({ params, request }: LoaderArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
   const { id } = params
   const url = new URL(request.url)
   const count = url.searchParams.get('count') || '10'
@@ -25,10 +27,10 @@ export async function loader({ params, request }: LoaderArgs) {
 Here is the same loader with Zodix:
 
 ```ts
-export async function loader({ params, request }: LoaderArgs) {
+export async function loader({ params, request }: Route.LoaderArgs) {
   const { id } = zx.parseParams(params, { id: z.string() })
   const { count } = zx.parseQuery(request, { count: zx.NumAsString })
-  // Fetch data with id and countNumber
+  // Fetch data with id and count
 }
 ```
 
@@ -36,14 +38,15 @@ Check the [example app](/examples/app/routes) for complete examples of common pa
 
 ## Highlights
 
-- Significantly reduce Remix action/loader bloat
+- **Full Zod v3 and v4 compatibility** - Works seamlessly with both versions
+- Significantly reduce React Router action/loader bloat
 - Avoid the oddities of FormData and URLSearchParams
-- Tiny with no external dependencies ([Less than 1kb gzipped](https://bundlephobia.com/package/zodix))
+- Tiny with no external dependencies ([Less than 1kb gzipped](https://bundlephobia.com/package/@coji/zodix))
 - Use existing Zod schemas, or write them on the fly
 - Custom Zod schemas for stringified numbers, booleans, and checkboxes
-- Throw errors meant for Remix CatchBoundary by default
+- Throw errors meant for React Router error boundaries by default
 - Supports non-throwing parsing for custom validation/errors
-- Works with all Remix runtimes (Node, Deno, Vercel, Cloudflare, etc)
+- Works with all React Router runtimes (Node, Deno, Vercel, Cloudflare, etc)
 - Full [unit test coverage](/src)
 
 ## Setup
@@ -51,24 +54,33 @@ Check the [example app](/examples/app/routes) for complete examples of common pa
 Install with npm, yarn, pnpm, etc.
 
 ```sh
-npm install zodix zod
+npm install @coji/zodix zod
 ```
+
+### Zod Version Compatibility
+
+Zodix supports both Zod v3 and v4:
+
+- **Zod v3**: Requires `zod@^3.25.0` or later
+- **Zod v4**: Fully compatible with `zod@^4.0.0`
+
+Your existing Zod schemas will work regardless of which version you're using. Zodix automatically detects and handles both versions transparently.
+
+## Usage
 
 Import the `zx` object, or specific functions:
 
 ```ts
-import { zx } from 'zodix'
-// import { parseParams, NumAsString } from 'zodix';
+import { zx } from '@coji/zodix'
+// import { parseParams, NumAsString } from '@coji/zodix';
 ```
-
-## Usage
 
 ### zx.parseParams(params: Params, schema: Schema)
 
-Parse and validate the `Params` object from `LoaderArgs['params']` or `ActionArgs['params']` using a Zod shape:
+Parse and validate the `Params` object from `Route.LoaderArgs['params']` or `Route.ActionArgs['params']` using a Zod shape:
 
 ```ts
-export async function loader({ params }: LoaderArgs) {
+export async function loader({ params }: Route.LoaderArgs) {
   const { userId, noteId } = zx.parseParams(params, {
     userId: z.string(),
     noteId: z.string(),
@@ -82,17 +94,17 @@ The same as above, but using an existing Zod object schema:
 // This is if you have many pages that share the same params.
 export const ParamsSchema = z.object({ userId: z.string(), noteId: z.string() })
 
-export async function loader({ params }: LoaderArgs) {
+export async function loader({ params }: Route.LoaderArgs) {
   const { userId, noteId } = zx.parseParams(params, ParamsSchema)
 }
 ```
 
 ### zx.parseForm(request: Request, schema: Schema)
 
-Parse and validate `FormData` from a `Request` in a Remix action and avoid the tedious `FormData` dance:
+Parse and validate `FormData` from a `Request` in a React Router action and avoid the tedious `FormData` dance:
 
 ```ts
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const { email, password, saveSession } = await zx.parseForm(request, {
     email: z.string().email(),
     password: z.string().min(6),
@@ -117,7 +129,7 @@ export function createNote(note: z.infer<typeof CreateNoteSchema>) {}
 ```ts
 import { CreateNoteSchema, createNote } from './db'
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const formData = await zx.parseForm(request, CreateNoteSchema)
   createNote(formData) // No TypeScript errors here
 }
@@ -128,7 +140,7 @@ export async function action({ request }: ActionArgs) {
 Parse and validate the query string (search params) of a `Request`:
 
 ```ts
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: Route.LoaderArgs) {
   const { count, page } = zx.parseQuery(request, {
     // NumAsString parses a string number ("5") and returns a number (5)
     count: zx.NumAsString,
@@ -142,17 +154,17 @@ export async function loader({ request }: LoaderArgs) {
 These work the same as the non-safe versions, but don't throw when validation fails. They use [`z.parseSafe()`](https://github.com/colinhacks/zod#safeparse) and always return an object with the parsed data or an error.
 
 ```ts
-export async function action(args: ActionArgs) {
+export async function action(args: Route.ActionArgs) {
   const results = await zx.parseFormSafe(args.request, {
     email: z.string().email({ message: 'Invalid email' }),
     password: z
       .string()
       .min(8, { message: 'Password must be at least 8 characters' }),
   })
-  return json({
+  return {
     success: results.success,
     error: results.error,
-  })
+  }
 }
 ```
 
@@ -162,10 +174,10 @@ Check the [login page example](/examples/app/routes/login.tsx) for a full exampl
 
 ### `parseParams()`, `parseForm()`, and `parseQuery()`
 
-These functions throw a 400 Response when the parsing fails. This works nicely with [Remix catch boundaries](https://remix.run/docs/en/v1/guides/not-found#nested-catch-boundaries) and should be used for parsing things that should rarely fail and don't require custom error handling. You can pass a custom error message or status code.
+These functions throw a 400 Response when the parsing fails. This works nicely with [React Router error boundaries](https://reactrouter.com/en/main/route/error-element) and should be used for parsing things that should rarely fail and don't require custom error handling. You can pass a custom error message or status code.
 
 ```ts
-export async function loader({ params }: LoaderArgs) {
+export async function loader({ params }: Route.LoaderArgs) {
   const { postId } = zx.parseParams(
     params,
     { postId: zx.NumAsString },
@@ -174,9 +186,9 @@ export async function loader({ params }: LoaderArgs) {
   const post = await getPost(postId);
   return { post };
 }
-export function CatchBoundary() {
-  const caught = useCatch();
-  return <h1>Caught error: {caught.statusText}</h1>;
+export function ErrorBoundary() {
+  const error = useRouteError();
+  return <h1>Error: {error.statusText}</h1>;
 }
 ```
 
@@ -251,6 +263,56 @@ parsed = {
 */
 ```
 
+## Zod v3/v4 Compatibility Details
+
+### How It Works
+
+Zodix uses an intelligent compatibility layer that:
+
+1. **Automatically detects** which version of Zod you're using
+2. **Transparently handles** parsing and validation for both versions
+3. **Requires no code changes** when upgrading from Zod v3 to v4
+
+### Using with Zod v3
+
+```ts
+import { z } from 'zod' // v3.x
+import { zx } from '@coji/zodix'
+
+const schema = z.object({
+  name: z.string(),
+  age: zx.IntAsString,
+})
+
+export async function loader({ params }: Route.LoaderArgs) {
+  const data = zx.parseParams(params, schema) // Works perfectly!
+}
+```
+
+### Using with Zod v4
+
+```ts
+import { z } from 'zod' // v4.x
+import { zx } from '@coji/zodix'
+
+const schema = z.object({
+  name: z.string(),
+  age: zx.IntAsString,
+})
+
+export async function loader({ params }: Route.LoaderArgs) {
+  const data = zx.parseParams(params, schema) // Also works perfectly!
+}
+```
+
+### Migration Guide
+
+Upgrading from Zod v3 to v4? No changes needed in your Zodix code!
+
+1. Update your Zod dependency: `npm install zod@^4.0.0`
+2. Your existing Zodix code continues to work without modification
+3. That's it! 🎉
+
 ## Extras
 
 ### Custom `URLSearchParams` parsing
@@ -261,16 +323,20 @@ You can pass a custom function, or use a library like [query-string](https://git
 
 ```ts
 // Create a custom parser function
-type ParserFunction = (params: URLSearchParams) => Record<string, string | string[]>;
-const customParser: ParserFunction = () => { /* ... */ };
+type ParserFunction = (
+  params: URLSearchParams,
+) => Record<string, string | string[]>
+const customParser: ParserFunction = () => {
+  /* ... */
+}
 
 // Parse non-standard search params
-const search = new URLSearchParams(`?ids[]=id1&ids[]=id2`);
+const search = new URLSearchParams(`?ids[]=id1&ids[]=id2`)
 const { ids } = zx.parseQuery(
   request,
-  { ids: z.array(z.string()) }
-  { parser: customParser }
-);
+  { ids: z.array(z.string()) },
+  { parser: customParser },
+)
 
 // ids = ['id1', 'id2']
 ```
@@ -286,15 +352,15 @@ const Schema = z.discriminatedUnion('intent', [
   z.object({ intent: z.literal('create'), name: z.string() }),
 ])
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: Route.ActionArgs) {
   const data = await zx.parseForm(request, Schema)
   switch (data.intent) {
     case 'delete':
       // data is now narrowed to { intent: 'delete', id: string }
-      return
+      return { success: true }
     case 'create':
       // data is now narrowed to { intent: 'create', name: string }
-      return
+      return { success: true }
     default:
       // data is now narrowed to never. This will error if a case is missing.
       const _exhaustiveCheck: never = data

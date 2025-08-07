@@ -59,12 +59,27 @@ npm install @coji/zodix zod
 
 ### Zod Version Compatibility
 
-Zodix supports both Zod v3 and v4:
+Zodix supports both Zod v3 and v4 through separate import paths:
 
-- **Zod v3**: Requires `zod@^3.25.0` or later
-- **Zod v4**: Fully compatible with `zod@^4.0.0`
+- **Zod v3**: Use `@coji/zodix` (requires `zod@^3.25.0` or later)
+- **Zod v4**: Use `@coji/zodix/v4` (requires `zod@^4.0.0`)
 
-Your existing Zod schemas will work regardless of which version you're using. Zodix automatically detects and handles both versions transparently.
+```ts
+// For Zod v3
+import { zx } from '@coji/zodix'
+
+// For Zod v4
+import { zx } from '@coji/zodix/v4'
+```
+
+### Migration Guide
+
+Upgrading from Zod v3 to v4? Follow these steps:
+
+1. Update your Zod dependency: `npm install zod@^4.0.0`
+2. Review and migrate your Zod schemas if needed - see [Zod v4 Changelog](https://zod.dev/v4/changelog) for breaking changes
+3. Change your Zodix imports from `@coji/zodix` to `@coji/zodix/v4`
+4. That's it! 🎉
 
 ## Usage
 
@@ -234,7 +249,7 @@ Because `FormData` and `URLSearchParams` serialize all values to strings, you of
 - `"3.14"` → `3.14`
 - `"notanumber"` → throws `ZodError`
 
-See [the tests](/src/schemas.test.ts) for more details.
+See [the tests](/src/schemas.v4.test.ts) for more details.
 
 ### Usage
 
@@ -267,17 +282,17 @@ parsed = {
 
 ### How It Works
 
-Zodix uses an intelligent compatibility layer that:
+Zodix provides separate import paths for Zod v3 and v4 compatibility:
 
-1. **Automatically detects** which version of Zod you're using
-2. **Transparently handles** parsing and validation for both versions
-3. **Requires no code changes** when upgrading from Zod v3 to v4
+1. **Use the appropriate import path** based on your Zod version
+2. **Full type safety** is maintained for both versions
+3. **Same API** across both versions - only the import path changes
 
 ### Using with Zod v3
 
 ```ts
 import { z } from 'zod' // v3.x
-import { zx } from '@coji/zodix'
+import { zx } from '@coji/zodix' // Default path for v3
 
 const schema = z.object({
   name: z.string(),
@@ -285,7 +300,7 @@ const schema = z.object({
 })
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const data = zx.parseParams(params, schema) // Works perfectly!
+  const data = zx.parseParams(params, schema) // Works with Zod v3!
 }
 ```
 
@@ -293,7 +308,7 @@ export async function loader({ params }: Route.LoaderArgs) {
 
 ```ts
 import { z } from 'zod' // v4.x
-import { zx } from '@coji/zodix'
+import { zx } from '@coji/zodix/v4' // Use v4 path
 
 const schema = z.object({
   name: z.string(),
@@ -301,17 +316,9 @@ const schema = z.object({
 })
 
 export async function loader({ params }: Route.LoaderArgs) {
-  const data = zx.parseParams(params, schema) // Also works perfectly!
+  const data = zx.parseParams(params, schema) // Works with Zod v4!
 }
 ```
-
-### Migration Guide
-
-Upgrading from Zod v3 to v4? No changes needed in your Zodix code!
-
-1. Update your Zod dependency: `npm install zod@^4.0.0`
-2. Your existing Zodix code continues to work without modification
-3. That's it! 🎉
 
 ## Extras
 
@@ -367,3 +374,7 @@ export async function action({ request }: Route.ActionArgs) {
   }
 }
 ```
+
+## Acknowledgments
+
+This project is a fork of [rileytomasek/zodix](https://github.com/rileytomasek/zodix). Thanks to Riley Tomasek for creating the original Zodix library.

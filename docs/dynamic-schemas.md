@@ -45,12 +45,14 @@ const filterCategories = await getAvailableFilterCategories()
 **Best for**: Semi-dynamic schemas where you have some known fields plus runtime-determined fields.
 
 **Pros**:
+
 - ✅ Full type inference with Zod v4
 - ✅ Validation for all fields
 - ✅ Type-safe access to known fields
 - ✅ Clean API
 
 **Cons**:
+
 - ⚠️ Limited type inference with Zod v3 (types infer as `any` for dynamic fields)
 - ⚠️ Requires building schema object at runtime
 
@@ -67,7 +69,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   // 2. Build dynamic fields from runtime data
   const dynamicFields = Object.fromEntries(
-    filterCategories.map(cat => [cat.id, z.string().optional()])
+    filterCategories.map((cat) => [cat.id, z.string().optional()]),
   )
 
   // 3. Extend base schema with dynamic fields
@@ -101,12 +103,14 @@ const dynamicFields = Object.fromEntries(...)
 **Best for**: When you don't need Zod validation for dynamic fields, or when dealing with completely unknown query parameters.
 
 **Pros**:
+
 - ✅ Simple and straightforward
 - ✅ No schema building required
 - ✅ Works with any dynamic keys
 - ✅ No dependency on Zod version
 
 **Cons**:
+
 - ❌ No validation for dynamic fields
 - ❌ Manual type coercion required
 - ❌ No type safety
@@ -141,12 +145,14 @@ export async function loader({ request }: Route.LoaderArgs) {
 **Best for**: When you need validation for completely dynamic keys, or when dealing with complex nested structures.
 
 **Pros**:
+
 - ✅ Validates dynamic data
 - ✅ Handles complex nested structures
 - ✅ Single query parameter
 - ✅ Type-safe with `z.record()`
 
 **Cons**:
+
 - ❌ Requires JSON encoding/decoding
 - ❌ More complex URL structure
 - ❌ Harder to work with in forms
@@ -196,15 +202,15 @@ export default function Component() {
 
 ## Comparison Table
 
-| Feature | z.object().extend() | URLSearchParams | JSON Record |
-|---------|---------------------|-----------------|-------------|
-| Type Safety (v4) | ✅ Full | ❌ Manual | ✅ Full |
-| Type Safety (v3) | ⚠️ Partial | ❌ Manual | ✅ Full |
-| Validation | ✅ Yes | ⚠️ Partial | ✅ Yes |
-| URL Friendliness | ✅ Clean URLs | ✅ Clean URLs | ❌ Complex URLs |
-| Form Integration | ✅ Easy | ✅ Easy | ⚠️ Requires JS |
-| Runtime Overhead | ⚠️ Schema building | ✅ Minimal | ⚠️ JSON parsing |
-| Best Use Case | Semi-dynamic filters | Fully dynamic params | Complex nested data |
+| Feature          | z.object().extend()  | URLSearchParams      | JSON Record         |
+| ---------------- | -------------------- | -------------------- | ------------------- |
+| Type Safety (v4) | ✅ Full              | ❌ Manual            | ✅ Full             |
+| Type Safety (v3) | ⚠️ Partial           | ❌ Manual            | ✅ Full             |
+| Validation       | ✅ Yes               | ⚠️ Partial           | ✅ Yes              |
+| URL Friendliness | ✅ Clean URLs        | ✅ Clean URLs        | ❌ Complex URLs     |
+| Form Integration | ✅ Easy              | ✅ Easy              | ⚠️ Requires JS      |
+| Runtime Overhead | ⚠️ Schema building   | ✅ Minimal           | ⚠️ JSON parsing     |
+| Best Use Case    | Semi-dynamic filters | Fully dynamic params | Complex nested data |
 
 ## Best Practices
 
@@ -223,7 +229,7 @@ export async function createFilterSchema() {
   })
 
   const dynamicFields = Object.fromEntries(
-    filterCategories.map(cat => [cat.id, z.string().optional()])
+    filterCategories.map((cat) => [cat.id, z.string().optional()]),
   )
 
   return {
@@ -269,10 +275,10 @@ Even with dynamic keys, you can validate the values:
 const filterCategories = await getAvailableFilterCategories()
 
 const dynamicFields = Object.fromEntries(
-  filterCategories.map(cat => [
+  filterCategories.map((cat) => [
     cat.id,
-    z.enum(cat.options as [string, ...string[]]).optional()
-  ])
+    z.enum(cat.options as [string, ...string[]]).optional(),
+  ]),
 )
 
 const fullSchema = baseSchema.extend(dynamicFields)
@@ -292,7 +298,7 @@ const getCachedFilterSchema = unstable_cache(
     // Build and return schema...
   },
   ['filter-schema'],
-  { revalidate: 3600 } // Cache for 1 hour
+  { revalidate: 3600 }, // Cache for 1 hour
 )
 ```
 
@@ -310,16 +316,16 @@ const baseSchema = z.object({
 })
 
 const dynamicFields = Object.fromEntries(
-  categories.map(cat => [cat.id, z.string().optional()])
+  categories.map((cat) => [cat.id, z.string().optional()]),
 )
 
 const fullSchema = baseSchema.extend(dynamicFields)
 const parsed = zx.parseQuery(request, fullSchema)
 
 // ✅ Full type inference works!
-console.log(parsed.q)           // string | undefined
-console.log(parsed.page)        // number | undefined
-console.log(parsed[cat.id])     // string | undefined
+console.log(parsed.q) // string | undefined
+console.log(parsed.page) // number | undefined
+console.log(parsed[cat.id]) // string | undefined
 ```
 
 ### Zod v3 (Type Inference Limitations)
@@ -334,15 +340,15 @@ const baseSchema = z.object({
 })
 
 const dynamicFields = Object.fromEntries(
-  categories.map(cat => [cat.id, z.string().optional()])
+  categories.map((cat) => [cat.id, z.string().optional()]),
 )
 
 const fullSchema = baseSchema.extend(dynamicFields)
 const parsed = zx.parseQuery(request, fullSchema)
 
 // ⚠️ Type inference is limited
-console.log(parsed.q)           // any (not ideal)
-console.log(parsed[cat.id])     // any (not ideal)
+console.log(parsed.q) // any (not ideal)
+console.log(parsed[cat.id]) // any (not ideal)
 
 // Workaround: Use z.infer with explicit type
 type FilterParams = z.infer<typeof fullSchema>
@@ -355,6 +361,7 @@ const typedParsed: FilterParams = parsed
 Zod v3's type system has limitations with complex conditional types that cause "Type instantiation is excessively deep" errors. Zodix v3 implementation uses `any` as a return type to avoid these errors. Zod v4 improved its type system to handle these cases better.
 
 **Recommendation**: If you're starting a new project and need dynamic schemas, use Zod v4. If you're on Zod v3, consider:
+
 1. Using Approach 2 (URLSearchParams) for truly dynamic fields
 2. Using Approach 3 (JSON Record) if you need validation
 3. Upgrading to Zod v4 for better type inference
@@ -378,7 +385,7 @@ async function getReportConfig(reportType: string) {
       { id: 'endDate', type: 'date' },
       { id: 'department', type: 'string' },
       // ... more dynamic filters
-    ]
+    ],
   }
 }
 
@@ -391,12 +398,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   })
 
   const dynamicFields = Object.fromEntries(
-    config.filters.map(filter => [
+    config.filters.map((filter) => [
       filter.id,
       filter.type === 'date'
         ? z.string().datetime().optional()
-        : z.string().optional()
-    ])
+        : z.string().optional(),
+    ]),
   )
 
   const fullSchema = baseSchema.extend(dynamicFields)
@@ -418,7 +425,7 @@ async function getTenantConfig(tenantId: string) {
     customFields: [
       { id: 'custom_field_1', label: 'Project Code' },
       { id: 'custom_field_2', label: 'Cost Center' },
-    ]
+    ],
   }
 }
 
@@ -432,7 +439,7 @@ export async function loader({ request }: Route.LoaderArgs) {
   })
 
   const customFields = Object.fromEntries(
-    config.customFields.map(field => [field.id, z.string().optional()])
+    config.customFields.map((field) => [field.id, z.string().optional()]),
   )
 
   const fullSchema = baseSchema.extend(customFields)

@@ -25,9 +25,32 @@ pnpm run format:fix   # Fix Prettier formatting
 
 ### Release
 
-```bash
-pnpm run release      # Release new version using np
-```
+This project uses **release-please** for automated versioning and npm publishing.
+
+**IMPORTANT**: Always use Conventional Commits format for commit messages:
+
+- `feat: description` - minor version bump (0.5.0 → 0.6.0)
+- `fix: description` - patch version bump (0.5.0 → 0.5.1)
+- `feat!: description` - major version bump (0.5.0 → 1.0.0)
+- `chore:`, `docs:`, `test:`, `refactor:` - no version bump
+
+**Release Workflow**:
+
+1. Develop and commit using Conventional Commits
+2. Create Pull Request
+3. Merge PR using "Create a merge commit" (not squash merge)
+4. release-please creates Release PR automatically
+5. Review Release PR (version bump and CHANGELOG.md)
+6. Merge Release PR - triggers automatic:
+   - GitHub Release creation
+   - npm publish with OIDC provenance (no secrets required)
+
+**npm Trusted Publishing (OIDC)**:
+
+This package uses npm trusted publishing with OIDC for secure publishing:
+- No `NPM_TOKEN` secrets required
+- Cryptographic proof of package origin
+- Verifiable build attestation on npm package page
 
 ### Testing Individual Files
 

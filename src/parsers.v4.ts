@@ -12,29 +12,30 @@ type Options<Parser = SearchParamsParser> = {
 type SearchParamsParser = (searchParams: URLSearchParams) => Record<string, any>
 export type FormDataParser = (formData: FormData) => Record<string, any>
 
-// Use Classic API types - ZodTypeAny supports both classic and core
-export type ParsedData<T extends z.ZodRawShape | z.ZodTypeAny> =
-  T extends z.ZodTypeAny
+// Use flexible type constraints for broader compatibility with both Classic and Core APIs
+// Support dynamic schemas with Record<string, any>
+export type ParsedData<T> =
+  T extends z.ZodType<any, any, any>
     ? z.output<T>
-    : T extends z.ZodRawShape
-      ? z.output<z.ZodObject<T>>
+    : T extends Record<string, any>
+      ? { [K in keyof T]: T[K] extends z.ZodType<any, any, any> ? z.output<T[K]> : never }
       : never
 
 // Import ZodSafeParseResult type directly
 import type { ZodSafeParseResult } from 'zod/v4/classic/parse'
 
-export type SafeParsedData<T extends z.ZodRawShape | z.ZodTypeAny> =
-  T extends z.ZodTypeAny
+export type SafeParsedData<T> =
+  T extends z.ZodType<any, any, any>
     ? ZodSafeParseResult<z.output<T>>
-    : T extends z.ZodRawShape
-      ? ZodSafeParseResult<z.output<z.ZodObject<T>>>
+    : T extends Record<string, any>
+      ? ZodSafeParseResult<{ [K in keyof T]: T[K] extends z.ZodType<any, any, any> ? z.output<T[K]> : never }>
       : never
 
 function isZodV4Schema(value: unknown): value is z.ZodTypeAny {
   return typeof value === 'object' && value !== null && '_zod' in value
 }
 
-export function parseParams<T extends z.ZodRawShape | z.ZodTypeAny>(
+export function parseParams<T>(
   params: Params,
   schema: T,
   options?: Options,
@@ -42,24 +43,24 @@ export function parseParams<T extends z.ZodRawShape | z.ZodTypeAny>(
   try {
     const finalSchema = isZodV4Schema(schema)
       ? schema
-      : z.object(schema as z.ZodRawShape)
+      : z.object(schema as Record<string, any>)
     return finalSchema.parse(params) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
 }
 
-export function parseParamsSafe<T extends z.ZodRawShape | z.ZodTypeAny>(
+export function parseParamsSafe<T>(
   params: Params,
   schema: T,
 ): SafeParsedData<T> {
   const finalSchema = isZodV4Schema(schema)
     ? schema
-    : z.object(schema as z.ZodRawShape)
+    : z.object(schema as Record<string, any>)
   return finalSchema.safeParse(params) as SafeParsedData<T>
 }
 
-export function parseQuery<T extends z.ZodRawShape | z.ZodTypeAny>(
+export function parseQuery<T>(
   request: Request | URLSearchParams,
   schema: T,
   options?: Options,
@@ -71,14 +72,14 @@ export function parseQuery<T extends z.ZodRawShape | z.ZodTypeAny>(
     const params = parseSearchParams(searchParams, options?.parser)
     const finalSchema = isZodV4Schema(schema)
       ? schema
-      : z.object(schema as z.ZodRawShape)
+      : z.object(schema as Record<string, any>)
     return finalSchema.parse(params) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
 }
 
-export function parseQuerySafe<T extends z.ZodRawShape | z.ZodTypeAny>(
+export function parseQuerySafe<T>(
   request: Request | URLSearchParams,
   schema: T,
   options?: Options,
@@ -89,11 +90,11 @@ export function parseQuerySafe<T extends z.ZodRawShape | z.ZodTypeAny>(
   const params = parseSearchParams(searchParams, options?.parser)
   const finalSchema = isZodV4Schema(schema)
     ? schema
-    : z.object(schema as z.ZodRawShape)
+    : z.object(schema as Record<string, any>)
   return finalSchema.safeParse(params) as SafeParsedData<T>
 }
 
-export async function parseForm<T extends z.ZodRawShape | z.ZodTypeAny>(
+export async function parseForm<T>(
   request: Request | FormData,
   schema: T,
   options?: Options<FormDataParser>,
@@ -106,14 +107,14 @@ export async function parseForm<T extends z.ZodRawShape | z.ZodTypeAny>(
       : parseFormData(formData)
     const finalSchema = isZodV4Schema(schema)
       ? schema
-      : z.object(schema as z.ZodRawShape)
+      : z.object(schema as Record<string, any>)
     return (await finalSchema.parseAsync(params)) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
 }
 
-export async function parseFormSafe<T extends z.ZodRawShape | z.ZodTypeAny>(
+export async function parseFormSafe<T>(
   request: Request | FormData,
   schema: T,
   options?: Options<FormDataParser>,
@@ -125,7 +126,7 @@ export async function parseFormSafe<T extends z.ZodRawShape | z.ZodTypeAny>(
     : parseFormData(formData)
   const finalSchema = isZodV4Schema(schema)
     ? schema
-    : z.object(schema as z.ZodRawShape)
+    : z.object(schema as Record<string, any>)
   return finalSchema.safeParseAsync(params) as Promise<SafeParsedData<T>>
 }
 

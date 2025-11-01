@@ -1,10 +1,10 @@
-import { zx } from '@coji/zodix/v4'
+import { zx } from '@coji/zodix'
 import { Form } from 'react-router'
-import { type ZodError, z } from 'zod/v4'
+import { type ZodError, z } from 'zod/v3'
 import type { Route } from './+types/login'
 
 const schema = z.object({
-  email: z.email({ message: 'Invalid email' }),
+  email: z.string().email({ message: 'Invalid email' }),
   password: z
     .string()
     .min(8, { message: 'Password must be at least 8 characters' }),

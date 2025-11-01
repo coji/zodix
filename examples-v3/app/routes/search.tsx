@@ -1,6 +1,6 @@
-import { zx } from '@coji/zodix/v4'
+import { zx } from '@coji/zodix'
 import { Form } from 'react-router'
-import { z } from 'zod/v4'
+import { z } from 'zod/v3'
 import type { Route } from './+types/search'
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -25,7 +25,7 @@ export default function Search({
         <div>
           <h2>Results for "{query}":</h2>
           <ul>
-            {results.map((result) => (
+            {results.map((result: string) => (
               <li key={result}>{result}</li>
             ))}
           </ul>

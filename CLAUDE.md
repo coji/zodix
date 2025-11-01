@@ -48,6 +48,7 @@ This project uses **release-please** for automated versioning and npm publishing
 **npm Trusted Publishing (OIDC)**:
 
 This package uses npm trusted publishing with OIDC for secure publishing:
+
 - No `NPM_TOKEN` secrets required
 - Cryptographic proof of package origin
 - Verifiable build attestation on npm package page

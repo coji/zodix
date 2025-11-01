@@ -1,6 +1,6 @@
 {
   "name": "@coji/zodix",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Parse React Router loaders and actions with Zod",
   "license": "MIT",
   "sideEffects": false,

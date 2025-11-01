@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.6.2](https://github.com/coji/zodix/compare/zodix-v0.6.1...zodix-v0.6.2) (2025-11-01)
+
+
+### Bug Fixes
+
+* exclude CHANGELOG.md from prettier formatting ([76f49e4](https://github.com/coji/zodix/commit/76f49e4155486205fd19160dab7f94c7c427b1f2))
+* exclude CHANGELOG.md from prettier formatting ([df649fc](https://github.com/coji/zodix/commit/df649fc99dd0887823d46451e7438ee31e4bd838))
+
 ## [0.6.1](https://github.com/coji/zodix/compare/zodix-v0.6.0...zodix-v0.6.1) (2025-11-01)
 
 

@@ -55,6 +55,32 @@ function isZodV3Schema(value: unknown): value is z3.ZodTypeAny {
   )
 }
 
+/**
+ * Parses and validates URL parameters from React Router using a Zod schema.
+ * Throws a 400 Response if validation fails, suitable for error boundaries.
+ *
+ * **Note for Zod v3 users**: Type inference may return `any` for complex schemas due to
+ * TypeScript limitations. Runtime validation still works correctly.
+ *
+ * @template T - The schema type (Zod schema or object shape)
+ * @param params - The params object from Route.LoaderArgs or Route.ActionArgs
+ * @param schema - Zod schema or object shape defining the expected structure
+ * @param options - Optional configuration (message, status, parser)
+ * @returns Parsed and validated params
+ * @throws Response with 400 status if validation fails
+ *
+ * @example
+ * ```typescript
+ * export async function loader({ params }: Route.LoaderArgs) {
+ *   const { userId, postId } = zx.parseParams(params, {
+ *     userId: z.string(),
+ *     postId: zx.IntAsString,
+ *   })
+ * }
+ * ```
+ *
+ * @see {@link parseParamsSafe} for non-throwing version
+ */
 export function parseParams<T>(
   params: Params,
   schema: T,
@@ -70,6 +96,12 @@ export function parseParams<T>(
   }
 }
 
+/**
+ * Safely parses and validates URL parameters using a Zod schema.
+ * Returns a result object instead of throwing.
+ *
+ * @see {@link parseParams} for throwing version
+ */
 export function parseParamsSafe<T>(
   params: Params,
   schema: T,
@@ -80,6 +112,16 @@ export function parseParamsSafe<T>(
   return finalSchema.safeParse(params) as SafeParsedData<T>
 }
 
+/**
+ * Parses and validates query string parameters using a Zod schema.
+ * Throws a 400 Response if validation fails.
+ *
+ * **Note for Zod v3 users**: For dynamic schemas, consider using URLSearchParams
+ * directly to avoid TypeScript depth errors. See docs/dynamic-schemas.md
+ *
+ * @see {@link parseQuerySafe} for non-throwing version
+ * @see {@link https://github.com/coji/zodix/blob/main/docs/dynamic-schemas.md} for dynamic schema patterns
+ */
 export function parseQuery<T>(
   request: Request | URLSearchParams,
   schema: T,
@@ -99,6 +141,12 @@ export function parseQuery<T>(
   }
 }
 
+/**
+ * Safely parses and validates query string parameters using a Zod schema.
+ * Returns a result object instead of throwing.
+ *
+ * @see {@link parseQuery} for throwing version
+ */
 export function parseQuerySafe<T>(
   request: Request | URLSearchParams,
   schema: T,
@@ -114,6 +162,15 @@ export function parseQuerySafe<T>(
   return finalSchema.safeParse(params) as SafeParsedData<T>
 }
 
+/**
+ * Parses and validates FormData from a React Router action using a Zod schema.
+ * Throws a 400 Response if validation fails.
+ *
+ * **Note for Zod v3 users**: Type inference may return `any` for complex schemas.
+ * Runtime validation still works correctly.
+ *
+ * @see {@link parseFormSafe} for non-throwing version
+ */
 export async function parseForm<T>(
   request: Request | FormData,
   schema: T,
@@ -134,6 +191,12 @@ export async function parseForm<T>(
   }
 }
 
+/**
+ * Safely parses and validates FormData using a Zod schema.
+ * Returns a result object instead of throwing.
+ *
+ * @see {@link parseForm} for throwing version
+ */
 export async function parseFormSafe<T>(
   request: Request | FormData,
   schema: T,

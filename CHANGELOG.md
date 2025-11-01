@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.6.1](https://github.com/coji/zodix/compare/zodix-v0.6.0...zodix-v0.6.1) (2025-11-01)
+
+
+### Bug Fixes
+
+* improve release workflow quality checks ([b6dc5f6](https://github.com/coji/zodix/commit/b6dc5f680eeae1b11cdf70fd0800cd1b881b4cb5))
+* update all Node.js versions to 22 ([43b1887](https://github.com/coji/zodix/commit/43b18878dd78abe2b522efd1e126665144749ae4))
+* update release workflow configuration ([855612a](https://github.com/coji/zodix/commit/855612ac864dd7049f80a1969d562980b4a854ee))
+* update workflows and sync configurations ([c00ba08](https://github.com/coji/zodix/commit/c00ba08453f60d08b2fc589fccd3d8c9cd3eeb77))
+
 ## [0.6.0](https://github.com/coji/zodix/compare/zodix-v0.5.0...zodix-v0.6.0) (2025-11-01)
 
 ### Features

@@ -9,6 +9,7 @@ export {
   parseQuery,
   parseQuerySafe,
   type FormDataParser,
+  type InferParams,
   type ParsedData,
   type SafeParsedData,
 } from './parsers.v4'

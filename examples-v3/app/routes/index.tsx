@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 export default function Index() {
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', lineHeight: '1.4' }}>
-      <h1>Zodix Examples</h1>
+      <h1>Zodix Examples (Zod v3)</h1>
       <ul>
         <li>
           <Link to="/posts/12">Valid loader parameters (/posts/12)</Link>

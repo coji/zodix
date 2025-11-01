@@ -12,19 +12,39 @@ type Options<Parser = SearchParamsParser> = {
 type SearchParamsParser = (searchParams: URLSearchParams) => Record<string, any>
 export type FormDataParser = (formData: FormData) => Record<string, any>
 
-export type ParsedData<T extends z3.ZodRawShape | z3.ZodTypeAny> =
-  T extends z3.ZodTypeAny
-    ? z3.output<T>
-    : T extends z3.ZodRawShape
-      ? z3.output<z3.ZodObject<T>>
-      : never
+// For Zod v3, we use 'any' return types to avoid "Type instantiation is excessively deep"
+// errors that occur with complex conditional types in Zod v3's type system
+// biome-ignore lint/correctness/noUnusedVariables: T is used for API consistency with v4
+export type ParsedData<T> = any
 
-export type SafeParsedData<T extends z3.ZodRawShape | z3.ZodTypeAny> =
-  T extends z3.ZodTypeAny
-    ? z3.SafeParseReturnType<any, z3.output<T>>
-    : T extends z3.ZodRawShape
-      ? z3.SafeParseReturnType<any, z3.output<z3.ZodObject<T>>>
-      : never
+// biome-ignore lint/correctness/noUnusedVariables: T is used for API consistency with v4
+export type SafeParsedData<T> = z3.SafeParseReturnType<any, any>
+
+/**
+ * Type helper to infer the parsed output type from a schema.
+ *
+ * **Note for Zod v3 users**: Due to TypeScript limitations with Zod v3's type system,
+ * this will infer as `any` when using Record-style dynamic schemas.
+ * For better type safety with Zod v3, use `z.object().extend()` instead.
+ *
+ * @example
+ * ```typescript
+ * // With Zod v3, prefer z.object().extend() for type safety:
+ * const baseSchema = z.object({
+ *   q: z.string().optional(),
+ *   page: zx.IntAsString.optional(),
+ * })
+ *
+ * const dynamicFields = categories.reduce((acc, cat) => ({
+ *   ...acc,
+ *   [cat.id]: z.string().optional()
+ * }), {})
+ *
+ * const fullSchema = baseSchema.extend(dynamicFields)
+ * type Params = z.infer<typeof fullSchema>  // Full type inference!
+ * ```
+ */
+export type InferParams<T> = ParsedData<T>
 
 function isZodV3Schema(value: unknown): value is z3.ZodTypeAny {
   return (
@@ -35,38 +55,74 @@ function isZodV3Schema(value: unknown): value is z3.ZodTypeAny {
   )
 }
 
-function createV3ObjectSchema(
-  shape: z3.ZodRawShape,
-): z3.ZodObject<z3.ZodRawShape> {
-  return z3.object(shape)
-}
-
-export function parseParams<T extends z3.ZodRawShape | z3.ZodTypeAny>(
+/**
+ * Parses and validates URL parameters from React Router using a Zod schema.
+ * Throws a 400 Response if validation fails, suitable for error boundaries.
+ *
+ * **Note for Zod v3 users**: Type inference may return `any` for complex schemas due to
+ * TypeScript limitations. Runtime validation still works correctly.
+ *
+ * @template T - The schema type (Zod schema or object shape)
+ * @param params - The params object from Route.LoaderArgs or Route.ActionArgs
+ * @param schema - Zod schema or object shape defining the expected structure
+ * @param options - Optional configuration (message, status, parser)
+ * @returns Parsed and validated params
+ * @throws Response with 400 status if validation fails
+ *
+ * @example
+ * ```typescript
+ * export async function loader({ params }: Route.LoaderArgs) {
+ *   const { userId, postId } = zx.parseParams(params, {
+ *     userId: z.string(),
+ *     postId: zx.IntAsString,
+ *   })
+ * }
+ * ```
+ *
+ * @see {@link parseParamsSafe} for non-throwing version
+ */
+export function parseParams<T>(
   params: Params,
   schema: T,
   options?: Options,
 ): ParsedData<T> {
   try {
     const finalSchema = isZodV3Schema(schema)
-      ? (schema as z3.ZodTypeAny)
-      : createV3ObjectSchema(schema as z3.ZodRawShape)
+      ? schema
+      : z3.object(schema as Record<string, any>)
     return finalSchema.parse(params) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
 }
 
-export function parseParamsSafe<T extends z3.ZodRawShape | z3.ZodTypeAny>(
+/**
+ * Safely parses and validates URL parameters using a Zod schema.
+ * Returns a result object instead of throwing.
+ *
+ * @see {@link parseParams} for throwing version
+ */
+export function parseParamsSafe<T>(
   params: Params,
   schema: T,
 ): SafeParsedData<T> {
   const finalSchema = isZodV3Schema(schema)
-    ? (schema as z3.ZodTypeAny)
-    : createV3ObjectSchema(schema as z3.ZodRawShape)
+    ? schema
+    : z3.object(schema as Record<string, any>)
   return finalSchema.safeParse(params) as SafeParsedData<T>
 }
 
-export function parseQuery<T extends z3.ZodRawShape | z3.ZodTypeAny>(
+/**
+ * Parses and validates query string parameters using a Zod schema.
+ * Throws a 400 Response if validation fails.
+ *
+ * **Note for Zod v3 users**: For dynamic schemas, consider using URLSearchParams
+ * directly to avoid TypeScript depth errors. See docs/dynamic-schemas.md
+ *
+ * @see {@link parseQuerySafe} for non-throwing version
+ * @see {@link https://github.com/coji/zodix/blob/main/docs/dynamic-schemas.md} for dynamic schema patterns
+ */
+export function parseQuery<T>(
   request: Request | URLSearchParams,
   schema: T,
   options?: Options,
@@ -77,15 +133,21 @@ export function parseQuery<T extends z3.ZodRawShape | z3.ZodTypeAny>(
       : getSearchParamsFromRequest(request)
     const params = parseSearchParams(searchParams, options?.parser)
     const finalSchema = isZodV3Schema(schema)
-      ? (schema as z3.ZodTypeAny)
-      : createV3ObjectSchema(schema as z3.ZodRawShape)
+      ? schema
+      : z3.object(schema as Record<string, any>)
     return finalSchema.parse(params) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
 }
 
-export function parseQuerySafe<T extends z3.ZodRawShape | z3.ZodTypeAny>(
+/**
+ * Safely parses and validates query string parameters using a Zod schema.
+ * Returns a result object instead of throwing.
+ *
+ * @see {@link parseQuery} for throwing version
+ */
+export function parseQuerySafe<T>(
   request: Request | URLSearchParams,
   schema: T,
   options?: Options,
@@ -95,12 +157,21 @@ export function parseQuerySafe<T extends z3.ZodRawShape | z3.ZodTypeAny>(
     : getSearchParamsFromRequest(request)
   const params = parseSearchParams(searchParams, options?.parser)
   const finalSchema = isZodV3Schema(schema)
-    ? (schema as z3.ZodTypeAny)
-    : createV3ObjectSchema(schema as z3.ZodRawShape)
+    ? schema
+    : z3.object(schema as Record<string, any>)
   return finalSchema.safeParse(params) as SafeParsedData<T>
 }
 
-export async function parseForm<T extends z3.ZodRawShape | z3.ZodTypeAny>(
+/**
+ * Parses and validates FormData from a React Router action using a Zod schema.
+ * Throws a 400 Response if validation fails.
+ *
+ * **Note for Zod v3 users**: Type inference may return `any` for complex schemas.
+ * Runtime validation still works correctly.
+ *
+ * @see {@link parseFormSafe} for non-throwing version
+ */
+export async function parseForm<T>(
   request: Request | FormData,
   schema: T,
   options?: Options<FormDataParser>,
@@ -112,15 +183,21 @@ export async function parseForm<T extends z3.ZodRawShape | z3.ZodTypeAny>(
       ? options.parser(formData)
       : parseFormData(formData)
     const finalSchema = isZodV3Schema(schema)
-      ? (schema as z3.ZodTypeAny)
-      : createV3ObjectSchema(schema as z3.ZodRawShape)
+      ? schema
+      : z3.object(schema as Record<string, any>)
     return (await finalSchema.parseAsync(params)) as ParsedData<T>
   } catch (_error) {
     throw createErrorResponse(options)
   }
 }
 
-export async function parseFormSafe<T extends z3.ZodRawShape | z3.ZodTypeAny>(
+/**
+ * Safely parses and validates FormData using a Zod schema.
+ * Returns a result object instead of throwing.
+ *
+ * @see {@link parseForm} for throwing version
+ */
+export async function parseFormSafe<T>(
   request: Request | FormData,
   schema: T,
   options?: Options<FormDataParser>,
@@ -131,8 +208,8 @@ export async function parseFormSafe<T extends z3.ZodRawShape | z3.ZodTypeAny>(
     ? options.parser(formData)
     : parseFormData(formData)
   const finalSchema = isZodV3Schema(schema)
-    ? (schema as z3.ZodTypeAny)
-    : createV3ObjectSchema(schema as z3.ZodRawShape)
+    ? schema
+    : z3.object(schema as Record<string, any>)
 
   // Use Zod v3's safeParseAsync
   return finalSchema.safeParseAsync(params) as Promise<SafeParsedData<T>>

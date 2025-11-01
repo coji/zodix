@@ -39,6 +39,7 @@ Check the [example app](/examples/app/routes) for complete examples of common pa
 ## Highlights
 
 - **Full Zod v3 and v4 compatibility** - Works seamlessly with both versions
+- **Dynamic schema support** - Build schemas at runtime based on database/API data
 - Significantly reduce React Router action/loader bloat
 - Avoid the oddities of FormData and URLSearchParams
 - Tiny with no external dependencies ([Less than 1kb gzipped](https://bundlephobia.com/package/@coji/zodix))
@@ -218,6 +219,71 @@ These functions are great for form validation because they don't throw when pars
 ```
 
 You can then handle errors in the action and access them in the component using `useActionData()`. Check the [login page example](/examples/app/routes/login.tsx) for a full example.
+
+## Dynamic Schemas
+
+Sometimes you need to build schemas dynamically based on runtime data (e.g., filter options from a database). Zodix provides excellent support for this pattern.
+
+### Type Inference Helper
+
+Use the `InferParams` type helper to get explicit types from your schemas:
+
+```ts
+import { zx, type InferParams } from '@coji/zodix'
+
+const mySchema = z.object({
+  q: z.string().optional(),
+  page: zx.IntAsString.optional(),
+})
+
+type Params = InferParams<typeof mySchema>
+// → { q: string | undefined, page: number | undefined }
+```
+
+### Building Dynamic Schemas with z.object().extend()
+
+The recommended approach for dynamic schemas is using `z.object().extend()`:
+
+```ts
+export async function loader({ request }: Route.LoaderArgs) {
+  // Fetch dynamic filter categories from database/API
+  const filterCategories = await getAvailableFilterCategories()
+  // → [{ id: 'category', ... }, { id: 'brand', ... }, ...]
+
+  // 1. Define base schema with known fields
+  const baseSchema = z.object({
+    q: z.string().optional(),
+    page: zx.IntAsString.optional(),
+  })
+
+  // 2. Build dynamic fields from runtime data
+  const dynamicFields = Object.fromEntries(
+    filterCategories.map((cat) => [cat.id, z.string().optional()]),
+  )
+
+  // 3. Extend base schema with dynamic fields
+  const fullSchema = baseSchema.extend(dynamicFields)
+
+  // 4. Parse with full type inference (Zod v4)
+  const parsed = zx.parseQuery(request, fullSchema)
+  // ✨ parsed.q is string | undefined
+  // ✨ parsed.page is number | undefined
+  // ✨ parsed[category.id] is string | undefined
+}
+```
+
+**Note**: With Zod v3, type inference for dynamic fields may return `any` due to TypeScript limitations. For better type safety with v3, consider alternative approaches.
+
+### Alternative Approaches
+
+For more advanced use cases and alternative patterns (URLSearchParams, JSON Record, etc.), see the [Dynamic Schemas Guide](/docs/dynamic-schemas.md). This guide covers:
+
+- Three different approaches with trade-offs
+- Zod v3 vs v4 considerations
+- Real-world examples (e-commerce filters, admin dashboards, multi-tenant SaaS)
+- Best practices for centralized schema definitions
+
+Check the [dynamic filters example](/examples/app/routes/filters.tsx) for a complete working implementation.
 
 ## Helper Zod Schemas
 

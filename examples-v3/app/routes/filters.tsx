@@ -10,10 +10,22 @@ import type { Route } from './+types/filters'
 async function getAvailableFilterCategories() {
   // In a real app, this would be a database query or API call
   return [
-    { id: 'category', name: 'Category', options: ['electronics', 'clothing', 'books'] },
+    {
+      id: 'category',
+      name: 'Category',
+      options: ['electronics', 'clothing', 'books'],
+    },
     { id: 'brand', name: 'Brand', options: ['BrandA', 'BrandB', 'BrandC'] },
-    { id: 'condition', name: 'Condition', options: ['new', 'used', 'refurbished'] },
-    { id: 'price_range', name: 'Price Range', options: ['0-50', '50-100', '100+'] },
+    {
+      id: 'condition',
+      name: 'Condition',
+      options: ['new', 'used', 'refurbished'],
+    },
+    {
+      id: 'price_range',
+      name: 'Price Range',
+      options: ['0-50', '50-100', '100+'],
+    },
   ]
 }
 
@@ -21,30 +33,55 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Fetch available filter categories (this could change over time)
   const filterCategories = await getAvailableFilterCategories()
 
-  // Parse all query params at once using URLSearchParams
+  // ========================================
+  // Approach: URLSearchParams with Zod for known fields (Zod v3 Compatible)
+  // ========================================
+  // With Zod v3, using z.object().extend() for dynamic schemas can cause
+  // "Type instantiation is excessively deep" errors. This approach avoids
+  // that by parsing known fields with Zod and dynamic fields with URLSearchParams.
+
   const url = new URL(request.url)
-  const searchParams = url.searchParams
 
-  // Parse base fields
-  const q = searchParams.get('q') || undefined
-  const pageStr = searchParams.get('page')
-  const page = pageStr ? Number.parseInt(pageStr, 10) || 1 : 1
+  // Parse known fields with Zod
+  const baseParams = zx.parseQuery(request, {
+    q: z.string().optional(),
+    page: zx.IntAsString.optional(),
+  })
 
-  // Extract filter values
+  // Parse dynamic filter fields directly from URLSearchParams
   const filters: Record<string, string | undefined> = {}
   for (const filter of filterCategories) {
-    const value = searchParams.get(filter.id)
+    const value = url.searchParams.get(filter.id)
     filters[filter.id] = value || undefined
   }
 
-  const params: Record<string, any> = {
-    q,
-    page,
-  }
+  // Alternative approaches for Zod v4 (see docs/dynamic-schemas.md):
+  //
+  // APPROACH 1: z.object().extend() (works well with Zod v4, full type safety)
+  // const baseSchema = z.object({
+  //   q: z.string().optional(),
+  //   page: zx.IntAsString.optional(),
+  // })
+  // const dynamicFields = Object.fromEntries(
+  //   filterCategories.map(cat => [cat.id, z.string().optional()])
+  // )
+  // const fullSchema = baseSchema.extend(dynamicFields)
+  // const parsed = zx.parseQuery(request, fullSchema)
+  //
+  // APPROACH 2: JSON Record (for truly dynamic keys)
+  // const schema = z.object({
+  //   filters: z.string().transform(s => JSON.parse(s)).pipe(z.record(z.string()))
+  // })
+  // URL: ?filters={"category":"books","status":"active"}
 
-  // Add filters to params
-  for (const filter of filterCategories) {
-    params[filter.id] = filters[filter.id]
+  const params: {
+    q: string | undefined
+    page: number
+    [key: string]: string | number | undefined
+  } = {
+    q: baseParams.q,
+    page: baseParams.page ?? 1,
+    ...filters,
   }
 
   const results = searchProducts({
@@ -79,21 +116,26 @@ export default function Filters({ loaderData }: Route.ComponentProps) {
           </label>
         </div>
 
-        {filterCategories.map((filter: { id: string; name: string; options: string[] }) => (
-          <div key={filter.id}>
-            <label>
-              {filter.name}:
-              <select name={filter.id} defaultValue={(params[filter.id] as string) || ''}>
-                <option value="">All</option>
-                {filter.options.map((option: string) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        ))}
+        {filterCategories.map(
+          (filter: { id: string; name: string; options: string[] }) => (
+            <div key={filter.id}>
+              <label>
+                {filter.name}:
+                <select
+                  name={filter.id}
+                  defaultValue={(params[filter.id] as string) || ''}
+                >
+                  <option value="">All</option>
+                  {filter.options.map((option: string) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          ),
+        )}
 
         <div>
           <label>
@@ -130,11 +172,46 @@ function searchProducts(params: {
   filters: Record<string, string | undefined>
 }) {
   const allProducts = [
-    { id: 1, name: 'Laptop', category: 'electronics', brand: 'BrandA', condition: 'new', price_range: '100+' },
-    { id: 2, name: 'T-Shirt', category: 'clothing', brand: 'BrandB', condition: 'new', price_range: '0-50' },
-    { id: 3, name: 'Novel', category: 'books', brand: 'BrandC', condition: 'used', price_range: '0-50' },
-    { id: 4, name: 'Smartphone', category: 'electronics', brand: 'BrandA', condition: 'refurbished', price_range: '50-100' },
-    { id: 5, name: 'Jeans', category: 'clothing', brand: 'BrandB', condition: 'new', price_range: '50-100' },
+    {
+      id: 1,
+      name: 'Laptop',
+      category: 'electronics',
+      brand: 'BrandA',
+      condition: 'new',
+      price_range: '100+',
+    },
+    {
+      id: 2,
+      name: 'T-Shirt',
+      category: 'clothing',
+      brand: 'BrandB',
+      condition: 'new',
+      price_range: '0-50',
+    },
+    {
+      id: 3,
+      name: 'Novel',
+      category: 'books',
+      brand: 'BrandC',
+      condition: 'used',
+      price_range: '0-50',
+    },
+    {
+      id: 4,
+      name: 'Smartphone',
+      category: 'electronics',
+      brand: 'BrandA',
+      condition: 'refurbished',
+      price_range: '50-100',
+    },
+    {
+      id: 5,
+      name: 'Jeans',
+      category: 'clothing',
+      brand: 'BrandB',
+      condition: 'new',
+      price_range: '50-100',
+    },
   ]
 
   let results = allProducts

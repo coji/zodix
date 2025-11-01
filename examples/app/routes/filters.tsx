@@ -10,10 +10,22 @@ import type { Route } from './+types/filters'
 async function getAvailableFilterCategories() {
   // In a real app, this would be a database query or API call
   return [
-    { id: 'category', name: 'Category', options: ['electronics', 'clothing', 'books'] },
+    {
+      id: 'category',
+      name: 'Category',
+      options: ['electronics', 'clothing', 'books'],
+    },
     { id: 'brand', name: 'Brand', options: ['BrandA', 'BrandB', 'BrandC'] },
-    { id: 'condition', name: 'Condition', options: ['new', 'used', 'refurbished'] },
-    { id: 'price_range', name: 'Price Range', options: ['0-50', '50-100', '100+'] },
+    {
+      id: 'condition',
+      name: 'Condition',
+      options: ['new', 'used', 'refurbished'],
+    },
+    {
+      id: 'price_range',
+      name: 'Price Range',
+      options: ['0-50', '50-100', '100+'],
+    },
   ]
 }
 
@@ -21,21 +33,46 @@ export async function loader({ request }: Route.LoaderArgs) {
   // Fetch available filter categories (this could change over time)
   const filterCategories = await getAvailableFilterCategories()
 
-  // Build dynamic schema for all query parameters
-  const dynamicSchema: Record<string, any> = {
+  // ========================================
+  // Approach: Use z.object().extend() for type-safe dynamic schemas
+  // ========================================
+  // This is the recommended approach for building schemas dynamically
+  // while maintaining full type inference.
+
+  // 1. Define base schema with known fields
+  const baseSchema = z.object({
     q: z.string().optional(),
     page: zx.IntAsString.optional(),
-  }
+  })
 
-  // Add filter fields to schema
-  for (const filter of filterCategories) {
-    dynamicSchema[filter.id] = z.string().optional()
-  }
+  // 2. Build dynamic fields from runtime data
+  const dynamicFields = Object.fromEntries(
+    filterCategories.map((cat) => [cat.id, z.string().optional()]),
+  )
 
-  // Parse all fields at once with type safety
-  const parsed = zx.parseQuery(request, dynamicSchema)
+  // 3. Extend base schema with dynamic fields
+  const fullSchema = baseSchema.extend(dynamicFields)
 
-  const params: Record<string, any> = {
+  // 4. Parse with full type inference
+  const parsed = zx.parseQuery(request, fullSchema)
+  // ✨ Type inference works! parsed.q is string | undefined
+  // ✨ parsed.page is number | undefined
+  // ✨ parsed[category.id] is string | undefined
+
+  // Alternative approaches (see docs/dynamic-schemas.md):
+  //
+  // APPROACH 2: URLSearchParams (simplest, no validation)
+  // const url = new URL(request.url)
+  // const q = url.searchParams.get('q') || undefined
+  // const page = parseInt(url.searchParams.get('page') || '1', 10)
+  //
+  // APPROACH 3: JSON Record (for truly dynamic keys)
+  // const schema = z.object({
+  //   filters: z.string().transform(s => JSON.parse(s)).pipe(z.record(z.string()))
+  // })
+  // URL: ?filters={"category":"books","status":"active"}
+
+  const params = {
     q: parsed.q,
     page: parsed.page ?? 1,
   }
@@ -80,21 +117,26 @@ export default function Filters({ loaderData }: Route.ComponentProps) {
           </label>
         </div>
 
-        {filterCategories.map((filter: { id: string; name: string; options: string[] }) => (
-          <div key={filter.id}>
-            <label>
-              {filter.name}:
-              <select name={filter.id} defaultValue={(params[filter.id] as string) || ''}>
-                <option value="">All</option>
-                {filter.options.map((option: string) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-        ))}
+        {filterCategories.map(
+          (filter: { id: string; name: string; options: string[] }) => (
+            <div key={filter.id}>
+              <label>
+                {filter.name}:
+                <select
+                  name={filter.id}
+                  defaultValue={(params[filter.id] as string) || ''}
+                >
+                  <option value="">All</option>
+                  {filter.options.map((option: string) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+          ),
+        )}
 
         <div>
           <label>
@@ -131,11 +173,46 @@ function searchProducts(params: {
   filters: Record<string, string | undefined>
 }) {
   const allProducts = [
-    { id: 1, name: 'Laptop', category: 'electronics', brand: 'BrandA', condition: 'new', price_range: '100+' },
-    { id: 2, name: 'T-Shirt', category: 'clothing', brand: 'BrandB', condition: 'new', price_range: '0-50' },
-    { id: 3, name: 'Novel', category: 'books', brand: 'BrandC', condition: 'used', price_range: '0-50' },
-    { id: 4, name: 'Smartphone', category: 'electronics', brand: 'BrandA', condition: 'refurbished', price_range: '50-100' },
-    { id: 5, name: 'Jeans', category: 'clothing', brand: 'BrandB', condition: 'new', price_range: '50-100' },
+    {
+      id: 1,
+      name: 'Laptop',
+      category: 'electronics',
+      brand: 'BrandA',
+      condition: 'new',
+      price_range: '100+',
+    },
+    {
+      id: 2,
+      name: 'T-Shirt',
+      category: 'clothing',
+      brand: 'BrandB',
+      condition: 'new',
+      price_range: '0-50',
+    },
+    {
+      id: 3,
+      name: 'Novel',
+      category: 'books',
+      brand: 'BrandC',
+      condition: 'used',
+      price_range: '0-50',
+    },
+    {
+      id: 4,
+      name: 'Smartphone',
+      category: 'electronics',
+      brand: 'BrandA',
+      condition: 'refurbished',
+      price_range: '50-100',
+    },
+    {
+      id: 5,
+      name: 'Jeans',
+      category: 'clothing',
+      brand: 'BrandB',
+      condition: 'new',
+      price_range: '50-100',
+    },
   ]
 
   let results = allProducts

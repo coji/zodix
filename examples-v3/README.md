@@ -8,7 +8,7 @@ When using `@coji/zodix` (without `/v4`), you must import from `zod/v3`:
 
 ```typescript
 import { zx } from '@coji/zodix'
-import { z } from 'zod/v3'  // ← Important: use 'zod/v3', not just 'zod'
+import { z } from 'zod/v3' // ← Important: use 'zod/v3', not just 'zod'
 ```
 
 ## Running the Examples

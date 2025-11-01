@@ -39,9 +39,7 @@ export default function Index() {
           </p>
         </li>
         <li>
-          <Link to="/filters">
-            Dynamic schema with filters (/filters)
-          </Link>
+          <Link to="/filters">Dynamic schema with filters (/filters)</Link>
           <p>
             This demonstrates how to build a type-safe schema with dynamic
             fields using z.object().extend(). Perfect for scenarios where you

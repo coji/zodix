@@ -14,9 +14,37 @@ export type FormDataParser = (formData: FormData) => Record<string, any>
 
 // For Zod v3, we use 'any' return types to avoid "Type instantiation is excessively deep"
 // errors that occur with complex conditional types in Zod v3's type system
+// biome-ignore lint/correctness/noUnusedVariables: T is used for API consistency with v4
 export type ParsedData<T> = any
 
+// biome-ignore lint/correctness/noUnusedVariables: T is used for API consistency with v4
 export type SafeParsedData<T> = z3.SafeParseReturnType<any, any>
+
+/**
+ * Type helper to infer the parsed output type from a schema.
+ *
+ * **Note for Zod v3 users**: Due to TypeScript limitations with Zod v3's type system,
+ * this will infer as `any` when using Record-style dynamic schemas.
+ * For better type safety with Zod v3, use `z.object().extend()` instead.
+ *
+ * @example
+ * ```typescript
+ * // With Zod v3, prefer z.object().extend() for type safety:
+ * const baseSchema = z.object({
+ *   q: z.string().optional(),
+ *   page: zx.IntAsString.optional(),
+ * })
+ *
+ * const dynamicFields = categories.reduce((acc, cat) => ({
+ *   ...acc,
+ *   [cat.id]: z.string().optional()
+ * }), {})
+ *
+ * const fullSchema = baseSchema.extend(dynamicFields)
+ * type Params = z.infer<typeof fullSchema>  // Full type inference!
+ * ```
+ */
+export type InferParams<T> = ParsedData<T>
 
 function isZodV3Schema(value: unknown): value is z3.ZodTypeAny {
   return (

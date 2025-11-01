@@ -3,7 +3,5 @@ dist
 
 tmp
 
-/docs
-
 # release-please
 .release-please-manifest.json.bak

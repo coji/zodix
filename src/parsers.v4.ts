@@ -18,7 +18,11 @@ export type ParsedData<T> =
   T extends z.ZodType<any, any, any>
     ? z.output<T>
     : T extends Record<string, any>
-      ? { [K in keyof T]: T[K] extends z.ZodType<any, any, any> ? z.output<T[K]> : never }
+      ? {
+          [K in keyof T]: T[K] extends z.ZodType<any, any, any>
+            ? z.output<T[K]>
+            : never
+        }
       : never
 
 // Import ZodSafeParseResult type directly
@@ -28,8 +32,30 @@ export type SafeParsedData<T> =
   T extends z.ZodType<any, any, any>
     ? ZodSafeParseResult<z.output<T>>
     : T extends Record<string, any>
-      ? ZodSafeParseResult<{ [K in keyof T]: T[K] extends z.ZodType<any, any, any> ? z.output<T[K]> : never }>
+      ? ZodSafeParseResult<{
+          [K in keyof T]: T[K] extends z.ZodType<any, any, any>
+            ? z.output<T[K]>
+            : never
+        }>
       : never
+
+/**
+ * Type helper to infer the parsed output type from a schema.
+ * Useful for explicitly typing variables when using dynamic schemas.
+ *
+ * @example
+ * ```typescript
+ * const mySchema = {
+ *   q: z.string().optional(),
+ *   page: zx.IntAsString,
+ *   category: z.string().optional()
+ * } as const
+ *
+ * type Params = InferParams<typeof mySchema>
+ * // → { q: string | undefined, page: number, category: string | undefined }
+ * ```
+ */
+export type InferParams<T> = ParsedData<T>
 
 function isZodV4Schema(value: unknown): value is z.ZodTypeAny {
   return typeof value === 'object' && value !== null && '_zod' in value

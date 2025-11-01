@@ -648,7 +648,9 @@ describe('dynamic schema support', () => {
         dynamicSchema[cat] = z.string().optional()
       }
 
-      const request = new Request('http://example.com?id=test&count=5&cat1=a&cat3=c')
+      const request = new Request(
+        'http://example.com?id=test&count=5&cat1=a&cat3=c',
+      )
       const result = zx.parseQuery(request, dynamicSchema)
 
       expect(result).toMatchObject({
@@ -675,7 +677,9 @@ describe('dynamic schema support', () => {
         dynamicSchema[cat] = z.string().optional()
       }
 
-      const request = new Request('http://example.com?id=test&count=5&cat1=a&cat3=c')
+      const request = new Request(
+        'http://example.com?id=test&count=5&cat1=a&cat3=c',
+      )
       const result = zx.parseQuery(request, dynamicSchema)
 
       expect(result).toMatchObject({
@@ -699,15 +703,18 @@ describe('dynamic schema support', () => {
       const categories = ['cat1', 'cat2', 'cat3'] as const
       const categorySchema = categories.reduce(
         (acc, cat) => ({
+          // biome-ignore lint/performance/noAccumulatingSpread: needed for dynamic schema
           ...acc,
           [cat]: z.string().optional(),
         }),
-        {} as Record<typeof categories[number], z.ZodOptional<z.ZodString>>,
+        {} as Record<(typeof categories)[number], z.ZodOptional<z.ZodString>>,
       )
 
       const fullSchema = baseSchema.extend(categorySchema)
 
-      const request = new Request('http://example.com?id=test&count=5&cat1=a&cat3=c')
+      const request = new Request(
+        'http://example.com?id=test&count=5&cat1=a&cat3=c',
+      )
       const result = zx.parseQuery(request, fullSchema)
 
       expect(result).toMatchObject({

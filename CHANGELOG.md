@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0](https://github.com/coji/zodix/compare/zodix-v0.6.2...zodix-v0.7.0) (2025-11-01)
+
+
+### Features
+
+* improve dynamic schema support with comprehensive documentation ([35ee1ca](https://github.com/coji/zodix/commit/35ee1cace764b44008b1dfd7d3e4753e66896eaa))
+* improve dynamic schema support with flexible type system ([a4edaef](https://github.com/coji/zodix/commit/a4edaefd91f63c815f5aaf3a2562945546e2215b))
+* improve dynamic schema support with InferParams type helper and comprehensive docs ([8895f90](https://github.com/coji/zodix/commit/8895f908dccb42a2535ce021471432784d95c51c))
+
 ## [0.6.2](https://github.com/coji/zodix/compare/zodix-v0.6.1...zodix-v0.6.2) (2025-11-01)
 
 

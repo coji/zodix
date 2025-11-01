@@ -63,7 +63,8 @@
     "node": ">=20"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "homepage": "https://github.com/coji/zodix",
   "repository": {

@@ -7,6 +7,7 @@ This guide explains how to handle dynamic schemas in Zodix - schemas where the f
 - [Static vs Dynamic Schemas](#static-vs-dynamic-schemas)
 - [Three Approaches for Dynamic Schemas](#three-approaches-for-dynamic-schemas)
 - [Comparison Table](#comparison-table)
+- [Type Inference Limitations](#type-inference-limitations)
 - [Best Practices](#best-practices)
 - [Zod v3 vs v4 Considerations](#zod-v3-vs-v4-considerations)
 - [Real-World Examples](#real-world-examples)
@@ -211,6 +212,113 @@ export default function Component() {
 | Form Integration | ✅ Easy              | ✅ Easy              | ⚠️ Requires JS      |
 | Runtime Overhead | ⚠️ Schema building   | ✅ Minimal           | ⚠️ JSON parsing     |
 | Best Use Case    | Semi-dynamic filters | Fully dynamic params | Complex nested data |
+
+## Type Inference Limitations
+
+### Object.fromEntries Type Widening
+
+⚠️ **Known Limitation**: When using `Object.fromEntries` with `.extend()`, TypeScript may infer broader types than expected. This is a **TypeScript and Zod limitation**, not a zodix issue.
+
+#### The Problem
+
+TypeScript's `Object.fromEntries` returns `Record<string, any>`, which causes type information to be widened. This particularly affects fields with specific enum types or transforms:
+
+```typescript
+const categories = ['A', 'B', 'C', 'D', 'E'] as const
+
+const querySchema = z
+  .object({
+    status: z
+      .enum(['A', 'B', 'C'])
+      .transform((v) => (Array.isArray(v) ? v : [v]))
+      .default([]),
+  })
+  .extend(
+    Object.fromEntries(categories.map((cat) => [cat, z.string().default('')])),
+  )
+
+const { status } = zx.parseQuery(request, querySchema)
+// TypeScript infers: string[]
+// You might expect: ('A' | 'B' | 'C')[]
+```
+
+#### Why This Happens
+
+This is a fundamental limitation of TypeScript's type system when dealing with dynamic object shapes:
+
+1. `Object.fromEntries` cannot infer specific object shapes at compile time
+2. TypeScript returns the generic type `Record<string, any>` for safety
+3. When passed to `.extend()`, this causes the entire schema to widen its types
+4. Runtime validation still works correctly - only compile-time type inference is affected
+
+#### Related Discussions
+
+This is a well-documented limitation in the Zod community:
+
+- [Zod Discussion #1099 - Dynamic schemas](https://github.com/colinhacks/zod/discussions/1099): "Dynamic schema generation trades type safety for flexibility"
+- [Stack Overflow: Dynamically generate Zod schema](https://stackoverflow.com/questions/75984188/zod-how-to-dynamically-generate-a-schema): "Achieving helpful type inference is potentially impossible" with `Object.fromEntries`
+- [Zod Issue #2909 - Extend within generic function](https://github.com/colinhacks/zod/issues/2909): Using `.extend()` in certain contexts loses type information
+
+#### Workaround: Type Assertions
+
+Use type assertions at the point of consumption when you need the specific type:
+
+```typescript
+const { status } = zx.parseQuery(request, querySchema)
+
+// Option 1: Inline type assertion
+await someFunction({
+  status: status as ('A' | 'B' | 'C')[],
+})
+
+// Option 2: Explicit variable with type
+const typedStatus: ('A' | 'B' | 'C')[] = status
+await someFunction({ status: typedStatus })
+
+// Option 3: Helper function with type signature
+function processStatus(status: ('A' | 'B' | 'C')[]) {
+  // ...
+}
+processStatus(status as ('A' | 'B' | 'C')[])
+```
+
+**This is safe** because:
+
+- Zod validates the data at runtime
+- The schema ensures only valid values pass through
+- You're only telling TypeScript what you already know is true
+
+#### Alternative: Avoid Object.fromEntries for Critical Types
+
+If you need precise type inference for specific fields, define them explicitly in the base schema instead:
+
+```typescript
+// Instead of this:
+const dynamicFields = Object.fromEntries(
+  [{ id: 'status', schema: z.enum(['A', 'B', 'C']) }].map((f) => [
+    f.id,
+    f.schema,
+  ]),
+)
+const schema = z.object({ other: z.string() }).extend(dynamicFields)
+
+// Do this:
+const schema = z.object({
+  status: z.enum(['A', 'B', 'C']),
+  other: z.string(),
+  // Add truly dynamic fields via Object.fromEntries if needed
+  ...Object.fromEntries(otherDynamicFields.map((f) => [f.id, z.string()])),
+})
+```
+
+#### Key Takeaways
+
+1. **This is expected behavior**, not a bug in zodix or Zod
+2. **Runtime validation works perfectly** - your data is still type-safe where it matters
+3. **Type assertions are the accepted workaround** in the community
+4. Consider the **trade-off between flexibility and compile-time type safety**
+
+For most use cases, the flexibility of dynamic schemas outweighs the need for perfect compile-time inference, especially since Zod provides runtime type safety.
 
 ## Best Practices
 
